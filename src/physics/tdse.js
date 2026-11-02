@@ -26,14 +26,25 @@ export const DISPLAY_RANGE = Object.freeze({ min: -65, max: 65 });
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-/** Normalize user-supplied parameters into the physically stable ranges. */
+/**
+ * Normalize user-supplied parameters into the physically stable ranges.
+ * Values are also snapped to the control step so the sliders and the solver
+ * always describe the same run.
+ */
 export function normalizeParams(input = {}) {
   const params = { ...DEFAULT_PARAMS, ...input };
   for (const [key, limit] of Object.entries(PARAM_LIMITS)) {
     const value = Number(params[key]);
-    params[key] = Number.isFinite(value)
-      ? clamp(value, limit.min, limit.max)
-      : limit.default;
+    if (!Number.isFinite(value)) {
+      params[key] = limit.default;
+      continue;
+    }
+    const clamped = clamp(value, limit.min, limit.max);
+    const steps = Math.round((clamped - limit.min) / limit.step);
+    params[key] = Math.min(
+      limit.max,
+      Number((limit.min + steps * limit.step).toFixed(6))
+    );
   }
   return params;
 }
@@ -152,11 +163,13 @@ export function simulate(input = {}, options = {}) {
   const rightStart = fractionIndex(x, a / 2);
 
   const frames = [];
+  const phaseFrames = [];
   const times = new Float64Array(nFrames + 1);
   const probabilities = [];
 
   const record = (frameIndex) => {
     const density = new Float32Array(N);
+    const phase = new Float32Array(N);
     let total = 0;
     let left = 0;
     let inside = 0;
@@ -166,6 +179,7 @@ export function simulate(input = {}, options = {}) {
     for (let i = 0; i < N; i++) {
       const d = psiR[i] * psiR[i] + psiI[i] * psiI[i];
       density[i] = d;
+      phase[i] = Math.atan2(psiI[i], psiR[i]);
       total += d;
       if (i < leftEnd) left += d;
       else if (i >= rightStart) right += d;
@@ -174,6 +188,7 @@ export function simulate(input = {}, options = {}) {
     }
 
     frames.push(density);
+    phaseFrames.push(phase);
     times[frameIndex] = frameIndex * steps * dt;
     const denom = total > 0 ? total : 1;
     probabilities.push({
@@ -260,6 +275,7 @@ export function simulate(input = {}, options = {}) {
     nFrames,
     times,
     frames,
+    phaseFrames,
     probabilities,
     final,
     peak: peak,

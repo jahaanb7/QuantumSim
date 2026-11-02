@@ -64,6 +64,7 @@ export function createStage(container, options = {}) {
 
   const observer = new ResizeObserver(resize);
   observer.observe(container);
+  window.addEventListener("resize", resize);
   resize();
 
   let frameCallback = null;
@@ -99,6 +100,7 @@ export function createStage(container, options = {}) {
     disposed = true;
     stop();
     observer.disconnect();
+    window.removeEventListener("resize", resize);
     controls.dispose();
     disposeObject(scene);
     renderer.dispose();

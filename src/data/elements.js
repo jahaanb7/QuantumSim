@@ -160,7 +160,7 @@ export const ELEMENTS = [
         occ: 1,
         zEff: 3.25,
         color: "#ffc46b",
-        label: "2pₓ",
+        label: "2p_x",
         axis: "x",
         opacity: 0.8,
       },
