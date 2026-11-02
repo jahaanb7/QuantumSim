@@ -117,6 +117,8 @@ export function mountElementsPage(root) {
 
   const cloudsGroup = new THREE.Group();
   const nucleusGroup = new THREE.Group();
+  // Orbital sampling uses z as its polar axis; Three.js uses y as up.
+  cloudsGroup.rotation.x = -Math.PI / 2;
   stage.scene.add(cloudsGroup, nucleusGroup);
 
   const glowTexture = makeGlowTexture();

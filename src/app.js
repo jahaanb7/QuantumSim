@@ -72,4 +72,8 @@ window.addEventListener("hashchange", () => {
 
 window.addEventListener("pagehide", () => cleanup?.());
 
+if (!window.location.hash) {
+  window.history.replaceState(null, "", "#/elements");
+}
+
 render();
