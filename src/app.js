@@ -1,14 +1,19 @@
 import { mountElementsPage } from "./views/elements.js";
+import { mountWavefunctionPage } from "./views/wavefunction.js";
 import { mountConfigurationsPage } from "./views/configurations.js";
 
 const ROUTES = {
   elements: {
     mount: mountElementsPage,
-    title: "Chemical Elements — QuantumSim",
+    title: "Orbitals — QuantumSim",
+  },
+  wavefunction: {
+    mount: mountWavefunctionPage,
+    title: "Wavefunction — QuantumSim",
   },
   configurations: {
     mount: mountConfigurationsPage,
-    title: "Quantum Configurations — QuantumSim",
+    title: "Tunneling — QuantumSim",
   },
 };
 
@@ -37,10 +42,10 @@ function showError(error) {
   const wrapper = document.createElement("div");
   wrapper.className = "fatal-error";
   wrapper.innerHTML = `
-    <div class="kicker">Rendering error</div>
+    <p class="eyebrow"><span>!</span> Render error</p>
     <h1>This view could not start</h1>
     <p>${String(error?.message || error)}</p>
-    <p class="fatal-hint">Try a browser with WebGL2 enabled, then reload the page.</p>
+    <p class="fatal-hint">Try a browser with WebGL2 enabled, then reload.</p>
   `;
   app.appendChild(wrapper);
 }

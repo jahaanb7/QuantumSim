@@ -1,10 +1,10 @@
 /**
- * Quantum Configurations — 3D wave-packet scattering lab.
+ * Tunneling — a time-dependent wave-packet scattering lab.
  *
- * The 1-D time-dependent Schrödinger equation is solved with the split-step
- * Fourier method, then |ψ(x,t)|² is turned into a 3D point cloud: every dot is
- * a sampled detection position, offset transversally so the density reads as a
- * volume. Colour encodes the phase of ψ.
+ * The 1-D Schrödinger equation is solved with the split-step Fourier method,
+ * then |psi(x,t)|^2 is turned into a 3D point cloud: every dot is a sampled
+ * detection position, offset transversally so the density reads as a volume.
+ * Colour encodes the phase of psi.
  */
 
 import * as THREE from "three";
@@ -21,12 +21,7 @@ import {
   DEFAULT_PARAMS,
   normalizeParams,
 } from "../physics/tdse.js";
-import {
-  createSlider,
-  debounce,
-  clamp,
-  percent,
-} from "../ui.js";
+import { createSlider, debounce, clamp, percent } from "../ui.js";
 
 const FRAMES = 120;
 const PARTICLES = 9000;
@@ -34,37 +29,37 @@ const FPS = 30;
 const TAU = Math.PI * 2;
 
 const PHASE_STOPS = [
-  [0, "#2b6fd6"],
-  [0.28, "#46e0e6"],
-  [0.55, "#b08cff"],
-  [0.82, "#ffe6a6"],
-  [1, "#2b6fd6"],
+  [0, "#4c6c8f"],
+  [0.28, "#7fa79a"],
+  [0.55, "#d3c19b"],
+  [0.82, "#c46a45"],
+  [1, "#4c6c8f"],
 ];
 
 const PRESETS = [
   {
     id: "tunneling",
-    name: "Deep tunneling",
+    name: "Deep tunnel",
     params: { energy: 2.0, barrier: 4.0, width: 1.2, sigma: 2.4, x0: -35 },
   },
   {
     id: "threshold",
-    name: "Near threshold",
+    name: "Threshold",
     params: { energy: 3.6, barrier: 4.0, width: 1.0, sigma: 2.4, x0: -35 },
   },
   {
     id: "over",
-    name: "Over the top",
+    name: "Over barrier",
     params: { energy: 5.0, barrier: 2.0, width: 1.4, sigma: 2.2, x0: -35 },
   },
   {
     id: "wide",
-    name: "Wide barrier",
+    name: "Wide wall",
     params: { energy: 2.6, barrier: 2.8, width: 3.4, sigma: 2.8, x0: -35 },
   },
   {
     id: "thin",
-    name: "Razor thin",
+    name: "Thin wall",
     params: { energy: 1.4, barrier: 6.5, width: 0.5, sigma: 2.0, x0: -35 },
   },
   {
@@ -97,141 +92,136 @@ function regimeFor(params) {
   if (ratio < 0.85) {
     return {
       name: "Deep tunneling",
-      color: "#59e6ff",
-      note: "The packet carries less energy than the barrier, yet its tail leaks through. A thinner, lower barrier transmits far more.",
+      note: "The packet carries less energy than the barrier, but its tail leaks through.",
     };
   }
   if (ratio <= 1.15) {
     return {
-      name: "Threshold regime",
-      color: "#ffc46b",
-      note: "E sits close to V₀, where transmission is acutely sensitive to the barrier width and to the packet's energy spread.",
+      name: "Threshold",
+      note: "E sits close to V₀, where transmission is acutely sensitive to every parameter.",
     };
   }
   return {
-    name: "Over the barrier",
-    color: "#6ef0b8",
-    note: "Classically the packet simply passes over. Quantum mechanically, fringes and a small reflected packet survive.",
+    name: "Over barrier",
+    note: "Classically the packet passes over; a reflected wave and interference fringes survive.",
   };
 }
 
 export function mountConfigurationsPage(root) {
   const page = document.createElement("div");
-  page.className = "page page-config";
+  page.className = "page page-tunnel";
   page.innerHTML = `
-    <aside class="rail rail-left rail-scroll">
-      <div class="rail-head">
-        <div class="kicker"><span class="accent-dot"></span>Scattering lab</div>
-        <h2>Quantum configurations</h2>
-        <p>Six prepared encounters between a Gaussian wave packet and a rectangular barrier.</p>
+    <aside class="side">
+      <div class="side-head">
+        <p class="eyebrow"><span>03</span> Scattering</p>
+        <h1>Through the<br><em>barrier</em></h1>
+        <p class="lede">A Gaussian packet meets a rectangular wall. Watch the probability divide.</p>
       </div>
-      <div class="preset-grid" aria-label="Simulation presets"></div>
-      <div class="preset-actions">
-        <button type="button" class="ghost-btn" data-action="reset">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3.2 12a8.8 8.8 0 1 0 2.7-6.3"/><path d="M3 4.2v4.4h4.4"/></svg>
-          Reset
-        </button>
-        <button type="button" class="ghost-btn" data-action="randomize">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
-          Randomize
-        </button>
+
+      <div class="side-body">
+        <div class="section-head"><span>Presets</span><span>six states</span></div>
+        <div class="preset-list" aria-label="Simulation presets"></div>
+        <div class="btn-row">
+          <button type="button" class="btn" data-action="reset">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3.2 12a8.8 8.8 0 1 0 2.7-6.3"/><path d="M3 4.2v4.4h4.4"/></svg>
+            Reset
+          </button>
+          <button type="button" class="btn" data-action="randomize">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
+            Random
+          </button>
+        </div>
+
+        <div class="section-head"><span>Parameters</span><span>atomic units</span></div>
+        <div class="controls"></div>
+        <p class="side-note" data-regime-note></p>
       </div>
-      <div class="panel-head params-head"><span>Parameters</span><span class="mono">natural units</span></div>
-      <div class="controls"></div>
-      <div class="rail-note">
-        <span class="note-icon">i</span>
-        <div><strong>Bounded by design.</strong> Sliders stay inside the stable range of the 1024-point split-step solver, so every setting produces a valid, normalised run.</div>
-      </div>
+
+      <div class="side-foot"><span>split-step</span><span>N = 1024</span></div>
     </aside>
 
-    <section class="stage">
-      <div class="stage-canvas"></div>
-      <div class="stage-watermark" aria-hidden="true">Ψ</div>
-      <div class="stage-head">
-        <div class="kicker"><span class="accent-dot"></span>Time-dependent Schrödinger equation</div>
-        <h1>Tunneling in 3D</h1>
-        <p class="stage-copy"></p>
-      </div>
-      <div class="stage-badge"><span class="badge-dot"></span>split-step TDSE · N = 1024</div>
-      <div class="stage-legend static">
-        <span class="legend-key"><i class="white"></i>dot density ∝ |ψ|²</span>
-        <span class="legend-key"><i class="gradient" data-phase-key></i>colour = phase</span>
-        <span class="legend-key"><i class="amber"></i>barrier V₀</span>
-      </div>
-      <div class="stage-loader">Solving Schrödinger equation</div>
-      <div class="stage-hint">drag<span>·</span>orbit<span>·</span>scroll<span>·</span>zoom</div>
+    <section class="work">
+      <div class="stage">
+        <div class="stage-canvas"></div>
+        <div class="stage-head">
+          <p class="eyebrow">03 / Time-dependent Schrödinger</p>
+          <h1 class="stage-title">Tunneling</h1>
+          <p class="stage-copy"></p>
+        </div>
+        <div class="stage-meta">
+          <span>split-step · 1024 points</span>
+          <span class="plate-index">Plate 03</span>
+        </div>
+        <div class="stage-legend static">
+          <span class="legend-key"><i style="background:#d3c19b"></i>density ∝ |ψ|²</span>
+          <span class="legend-key"><i class="gradient" data-phase-key></i>phase</span>
+          <span class="legend-key"><i class="amber"></i>barrier</span>
+        </div>
+        <div class="stage-loader">Solving Schrödinger</div>
+        <div class="stage-hint">drag<span>·</span>orbit<span>·</span>scroll<span>·</span>zoom</div>
 
-      <div class="playback">
-        <button type="button" class="play-btn" aria-label="Play simulation">${PLAY_ICON}</button>
-        <div class="timeline-wrap">
-          <input type="range" min="0" max="120" step="1" value="0" aria-label="Simulation time" />
-          <div class="playback-meta">
-            <span class="time-now mono">t = 0.0 a.u.</span>
-            <span class="frame-now mono">0 / 120</span>
+        <div class="playback">
+          <button type="button" class="play-btn" aria-label="Play simulation">${PLAY_ICON}</button>
+          <div class="timeline-wrap">
+            <input type="range" min="0" max="120" step="1" value="0" aria-label="Simulation time" />
+            <div class="playback-meta">
+              <span class="time-now mono">t = 0.00 a.u.</span>
+              <span class="frame-now mono">0 / 120</span>
+            </div>
+          </div>
+          <button type="button" class="replay-btn" aria-label="Replay from the start">${REPLAY_ICON}</button>
+        </div>
+      </div>
+
+      <div class="ribbon ribbon-tunnel">
+        <div class="metric lead">
+          <span class="label">Transmitted</span>
+          <span class="value"><span data-stat="right">0</span><em>%</em></span>
+          <span class="sub">right of the barrier</span>
+        </div>
+        <div class="metric metric-split">
+          <span class="label">Probability split</span>
+          <div class="split-bar" role="img" aria-label="Probability split">
+            <div class="split-seg left" data-seg="left"></div>
+            <div class="split-seg inside" data-seg="inside"></div>
+            <div class="split-seg right" data-seg="right"></div>
+          </div>
+          <div class="split-legend">
+            <span class="l-left"><i></i>left <b data-split="left">0%</b></span>
+            <span class="l-inside"><i></i>inside <b data-split="inside">0%</b></span>
+            <span class="l-right"><i></i>right <b data-split="right">0%</b></span>
           </div>
         </div>
-        <button type="button" class="replay-btn" aria-label="Replay from the start">${REPLAY_ICON}</button>
+        <div class="metric">
+          <span class="label">Analytic T</span>
+          <span class="value" data-read="analytic">—</span>
+          <span class="sub">packet <b data-read="final">—</b></span>
+        </div>
+        <div class="metric">
+          <span class="label">Norm</span>
+          <span class="value" data-read="norm">—</span>
+          <span class="sub">⟨ψ|ψ⟩</span>
+        </div>
+        <div class="metric">
+          <span class="label">Regime</span>
+          <span class="value" data-regime-name>—</span>
+          <span class="sub" data-regime-sub></span>
+        </div>
       </div>
     </section>
-
-    <aside class="rail rail-right">
-      <div class="panel stat-panel">
-        <div class="panel-head"><span>Transmission</span><span class="status-pill">live</span></div>
-        <div class="big-stat">
-          <strong data-stat="right">0</strong><span>%</span>
-          <small>of the probability is right of the barrier</small>
-        </div>
-        <div class="split-bar" role="img" aria-label="Probability split">
-          <div class="split-seg left" data-seg="left"></div>
-          <div class="split-seg inside" data-seg="inside"></div>
-          <div class="split-seg right" data-seg="right"></div>
-        </div>
-        <div class="split-legend">
-          <span class="l-left"><i></i>left <b data-split="left">0%</b></span>
-          <span class="l-inside"><i></i>inside <b data-split="inside">0%</b></span>
-          <span class="l-right"><i></i>right <b data-split="right">0%</b></span>
-        </div>
-
-        <dl class="readout">
-          <div class="readout-row"><dt>Energy E</dt><dd data-read="energy"></dd></div>
-          <div class="readout-row"><dt>Barrier V₀</dt><dd data-read="barrier"></dd></div>
-          <div class="readout-row"><dt>Barrier width a</dt><dd data-read="width"></dd></div>
-          <div class="readout-row"><dt>Analytic T (plane wave)</dt><dd data-read="analytic"></dd></div>
-          <div class="readout-row"><dt>Final T (this packet)</dt><dd data-read="final"></dd></div>
-          <div class="readout-row"><dt>Norm ⟨ψ|ψ⟩</dt><dd data-read="norm" class="dim"></dd></div>
-        </dl>
-
-        <div class="regime-row" style="margin-top:13px">
-          <div class="regime"><span class="regime-dot"></span><span data-regime-name>Deep tunneling</span></div>
-          <p class="regime-sub" data-regime-sub></p>
-          <p class="regime-note" data-regime-note></p>
-        </div>
-
-        <div class="ratio-row">
-          <div class="ratio-top"><span>Energy relative to barrier</span><b data-ratio-label></b></div>
-          <div class="ratio-track"><div class="ratio-fill" data-ratio-fill></div></div>
-        </div>
-
-        <div class="meta-grid">
-          <div><span>Wavenumber k₀</span><b data-meta="k0"></b></div>
-          <div><span>de Broglie λ</span><b data-meta="lambda"></b></div>
-          <div><span>Packet σ₀</span><b data-meta="sigma"></b></div>
-          <div><span>Grid</span><b data-meta="grid"></b></div>
-        </div>
-      </div>
-    </aside>
   `;
   root.appendChild(page);
 
   const canvasHost = page.querySelector(".stage-canvas");
   const loader = page.querySelector(".stage-loader");
   const stageCopy = page.querySelector(".stage-copy");
-  const presetGrid = page.querySelector(".preset-grid");
+  const presetGrid = page.querySelector(".preset-list");
   const controlsHost = page.querySelector(".controls");
   const playButton = page.querySelector(".play-btn");
   const timeline = page.querySelector(".timeline-wrap input");
   const timeNow = page.querySelector(".time-now");
   const frameNow = page.querySelector(".frame-now");
+  const regimeNote = page.querySelector("[data-regime-note]");
 
   const statEls = {
     right: page.querySelector('[data-stat="right"]'),
@@ -241,25 +231,13 @@ export function mountConfigurationsPage(root) {
     splitLeft: page.querySelector('[data-split="left"]'),
     splitInside: page.querySelector('[data-split="inside"]'),
     splitRight: page.querySelector('[data-split="right"]'),
-    energy: page.querySelector('[data-read="energy"]'),
-    barrier: page.querySelector('[data-read="barrier"]'),
-    width: page.querySelector('[data-read="width"]'),
     analytic: page.querySelector('[data-read="analytic"]'),
     final: page.querySelector('[data-read="final"]'),
     norm: page.querySelector('[data-read="norm"]'),
     regimeName: page.querySelector("[data-regime-name]"),
     regimeSub: page.querySelector("[data-regime-sub]"),
-    regimeNote: page.querySelector("[data-regime-note]"),
-    regimeDot: page.querySelector(".regime-dot"),
-    ratioLabel: page.querySelector("[data-ratio-label]"),
-    ratioFill: page.querySelector("[data-ratio-fill]"),
-    k0: page.querySelector('[data-meta="k0"]'),
-    lambda: page.querySelector('[data-meta="lambda"]'),
-    sigma: page.querySelector('[data-meta="sigma"]'),
-    grid: page.querySelector('[data-meta="grid"]'),
   };
 
-  // Legend gradient mirrors the palette used for the point colours.
   const phaseKey = page.querySelector("[data-phase-key]");
   phaseKey.style.background = `linear-gradient(90deg, ${PHASE_STOPS.map(
     ([stop, color]) => `${color} ${(stop * 100).toFixed(0)}%`
@@ -285,10 +263,10 @@ export function mountConfigurationsPage(root) {
 
   /* ---------------------------------------------------------------- 3D pieces */
 
-  const floor = new THREE.GridHelper(190, 19, 0x22334f, 0x142036);
+  const floor = new THREE.GridHelper(190, 19, 0x3a3d31, 0x25271f);
   floor.position.y = -9.6;
   floor.material.transparent = true;
-  floor.material.opacity = 0.42;
+  floor.material.opacity = 0.5;
   floor.material.depthWrite = false;
   sceneContent.add(floor);
 
@@ -299,17 +277,17 @@ export function mountConfigurationsPage(root) {
   const axisLine = new THREE.Line(
     axisGeometry,
     new THREE.LineBasicMaterial({
-      color: 0x3a4f72,
+      color: 0x4d5142,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.55,
     })
   );
   sceneContent.add(axisLine);
 
   const axisLabel = makeTextSprite("x", {
-    color: "#6f86a8",
+    color: "#77796c",
     fontSize: 44,
-    height: 2.4,
+    height: 2.2,
   });
   axisLabel.position.set(70, -9.2, 0);
   sceneContent.add(axisLabel);
@@ -317,11 +295,10 @@ export function mountConfigurationsPage(root) {
   const barrierGroup = new THREE.Group();
   const slabGeometry = new THREE.BoxGeometry(1, 17, 17);
   const slabMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffc46b,
+    color: 0xc2a052,
     transparent: true,
-    opacity: 0.085,
+    opacity: 0.07,
     depthWrite: false,
-    blending: THREE.AdditiveBlending,
     side: THREE.DoubleSide,
   });
   const slab = new THREE.Mesh(slabGeometry, slabMaterial);
@@ -330,9 +307,9 @@ export function mountConfigurationsPage(root) {
 
   const edgeGeometry = new THREE.EdgesGeometry(slabGeometry);
   const edgeMaterial = new THREE.LineBasicMaterial({
-    color: 0xffc46b,
+    color: 0xc2a052,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.48,
   });
   const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
   edges.renderOrder = 3;
@@ -348,9 +325,9 @@ export function mountConfigurationsPage(root) {
       barrierLabel.material.dispose();
     }
     barrierLabel = makeTextSprite(`V₀ ${value.toFixed(1)}`, {
-      color: "#ffc46b",
-      fontSize: 46,
-      height: 3,
+      color: "#c2a052",
+      fontSize: 44,
+      height: 2.8,
     });
     barrierLabel.position.set(0, 9.6, 0);
     barrierLabel.renderOrder = 10;
@@ -358,7 +335,6 @@ export function mountConfigurationsPage(root) {
   }
   setBarrierLabel(DEFAULT_PARAMS.barrier);
 
-  // Point cloud, resampled from |ψ|² for each simulation frame.
   const positions = new Float32Array(PARTICLES * 3);
   const colors = new Float32Array(PARTICLES * 3);
   const cloudGeometry = new THREE.BufferGeometry();
@@ -370,12 +346,11 @@ export function mountConfigurationsPage(root) {
   cloudGeometry.setAttribute("color", colorAttr);
 
   const cloudMaterial = new THREE.PointsMaterial({
-    size: 0.9,
+    size: 1.7,
     map: glowTexture,
     transparent: true,
-    opacity: 0.58,
+    opacity: 0.8,
     vertexColors: true,
-    blending: THREE.AdditiveBlending,
     depthWrite: false,
     alphaTest: 0.02,
     sizeAttenuation: true,
@@ -390,11 +365,9 @@ export function mountConfigurationsPage(root) {
     quantiles[i] = (i + random()) / PARTICLES;
   }
 
-  // Fixed transverse offsets: one particle keeps its y/z while its x is
-  // resampled each frame, which keeps the cloud from flickering.
   const offsets = new Float32Array(PARTICLES * 2);
   for (let i = 0; i < PARTICLES; i++) {
-    const radius = Math.min(4, Math.sqrt(-2 * Math.log(1 - random()))) * 1.7;
+    const radius = Math.min(4.6, Math.sqrt(-2 * Math.log(1 - random()))) * 2.0;
     const angle = TAU * random();
     offsets[i * 2] = radius * Math.cos(angle);
     offsets[i * 2 + 1] = radius * Math.sin(angle);
@@ -407,7 +380,6 @@ export function mountConfigurationsPage(root) {
   let playing = false;
   let accum = 0;
   let disposed = false;
-
   let params = normalizeParams(DEFAULT_PARAMS);
 
   /* ---------------------------------------------------------------- sampling */
@@ -475,43 +447,22 @@ export function mountConfigurationsPage(root) {
     colorAttr.needsUpdate = true;
   }
 
-  /* ---------------------------------------------------------------- stats UI */
+  /* ---------------------------------------------------------------- readouts */
 
   function updateStaticReadouts() {
     if (!sim) return;
     const regime = regimeFor(params);
     const ratio = params.energy / params.barrier;
 
-    statEls.energy.textContent = `${params.energy.toFixed(2)} a.u.`;
-    statEls.barrier.textContent = `${params.barrier.toFixed(2)} a.u.`;
-    statEls.width.textContent = `${params.width.toFixed(2)} a.u.`;
     statEls.analytic.textContent = percent(sim.analyticT);
     statEls.final.textContent = percent(sim.final.right);
     statEls.norm.textContent = sim.norm.toFixed(4);
-
     statEls.regimeName.textContent = regime.name;
-    statEls.regimeSub.textContent = `E / V₀ = ${ratio.toFixed(2)} · barrier ${params.width.toFixed(
-      2
-    )} a.u. wide`;
-    statEls.regimeNote.textContent = regime.note;
-    statEls.regimeDot.style.background = regime.color;
-    statEls.regimeDot.style.boxShadow = `0 0 10px ${regime.color}`;
+    statEls.regimeSub.textContent = `E/V₀ ${ratio.toFixed(2)} · a ${params.width.toFixed(2)}`;
+    regimeNote.textContent = regime.note;
 
-    statEls.ratioLabel.textContent = `${ratio.toFixed(2)} ×`;
-    statEls.ratioFill.style.width = `${clamp(ratio / 1.5, 0, 1) * 100}%`;
+    stageCopy.innerHTML = `<strong>E = ${params.energy.toFixed(1)}</strong> against a barrier of <strong>V₀ = ${params.barrier.toFixed(1)}</strong>, width <strong>${params.width.toFixed(1)}</strong> a.u.`;
 
-    statEls.k0.textContent = `${sim.k0.toFixed(2)}`;
-    statEls.lambda.textContent = `${((TAU / sim.k0) || 0).toFixed(2)}`;
-    statEls.sigma.textContent = `${params.sigma.toFixed(1)}`;
-    statEls.grid.textContent = `${sim.N} pts`;
-
-    stageCopy.innerHTML = `A Gaussian packet with <strong>E = ${params.energy.toFixed(
-      1
-    )}</strong> meets a barrier of height <strong>V₀ = ${params.barrier.toFixed(
-      1
-    )}</strong> and width <strong>a = ${params.width.toFixed(
-      1
-    )}</strong>. Every dot is a sampled position; dot density is |ψ|².`;
     setBarrierLabel(params.barrier);
     barrierGroup.scale.x = params.width;
   }
@@ -629,7 +580,7 @@ export function mountConfigurationsPage(root) {
       `E ${preset.params.energy} · V₀ ${preset.params.barrier} · a ${preset.params.width}`
     );
     button.innerHTML = `
-      <canvas class="preset-map" width="160" height="49" aria-hidden="true"></canvas>
+      <canvas class="preset-map" width="160" height="43" aria-hidden="true"></canvas>
       <span class="preset-info">
         <span class="preset-name">${preset.name}</span>
         <span class="preset-t">T ${Math.round(
@@ -666,7 +617,7 @@ export function mountConfigurationsPage(root) {
     );
   }
 
-  /* ---------------------------------------------------------------- presets: real x–t maps */
+  /* ---------------------------------------------------------------- thumbnails */
 
   const thumbnailTimers = [];
 
@@ -682,20 +633,20 @@ export function mountConfigurationsPage(root) {
     const span = max - min;
     const nFrames = result.frames.length;
 
-    let peak = 0;
+    let peakDensity = 0;
     for (const density of result.frames) {
       for (let i = 0; i < density.length; i += 3) {
-        if (density[i] > peak) peak = density[i];
+        if (density[i] > peakDensity) peakDensity = density[i];
       }
     }
-    peak = peak || 1;
+    peakDensity = peakDensity || 1;
 
     const stops = [
-      [0.0, [10, 20, 36]],
-      [0.32, [28, 103, 158]],
-      [0.62, [78, 222, 235]],
-      [0.85, [176, 140, 255]],
-      [1.0, [255, 230, 166]],
+      [0.0, [17, 18, 15]],
+      [0.32, [76, 108, 143]],
+      [0.62, [127, 167, 154]],
+      [0.85, [211, 193, 155]],
+      [1.0, [196, 106, 69]],
     ];
 
     const mix = (t) => {
@@ -721,7 +672,7 @@ export function mountConfigurationsPage(root) {
           0,
           density.length - 1
         );
-        const value = Math.pow(clamp(density[bin] / peak, 0, 1), 0.42);
+        const value = Math.pow(clamp(density[bin] / peakDensity, 0, 1), 0.42);
         const [r, g, b] = mix(value);
         const offset = (row * width + col) * 4;
         data[offset] = r;
@@ -733,10 +684,9 @@ export function mountConfigurationsPage(root) {
 
     ctx.putImageData(image, 0, 0);
 
-    // Mark the barrier position.
     const centre = ((0 - min) / span) * width;
     const thickness = Math.max(1.5, (result.params.width / span) * width);
-    ctx.fillStyle = "rgba(255, 196, 107, 0.5)";
+    ctx.fillStyle = "rgba(194, 160, 82, 0.55)";
     ctx.fillRect(centre - thickness / 2, 0, thickness, height);
   }
 
@@ -747,8 +697,6 @@ export function mountConfigurationsPage(root) {
     if (!preset || !button) return;
     const canvas = button.querySelector("canvas");
 
-    // Use the full 1024-point grid: a coarse grid widens the effective barrier
-    // and would understate transmission in the thumbnail.
     const result = simulate(preset.params, { frames: 48 });
     drawSpacetime(canvas, result);
     const measured = Math.round(result.final.right * 100);
@@ -758,8 +706,6 @@ export function mountConfigurationsPage(root) {
   }
 
   function scheduleThumbnails() {
-    // Independent timers (not a chain) so background-tab throttling cannot
-    // strand the last thumbnail.
     PRESETS.forEach((_, index) => {
       thumbnailTimers.push(
         window.setTimeout(() => buildThumbnail(index), 340 + index * 130)
@@ -788,8 +734,6 @@ export function mountConfigurationsPage(root) {
     if (disposed) return;
     loader.classList.add("visible");
 
-    // A short timeout lets the loader paint before the solver blocks the
-    // thread. Unlike rAF it also fires when the tab is in the background.
     window.setTimeout(() => {
       if (disposed) return;
       try {
@@ -826,24 +770,11 @@ export function mountConfigurationsPage(root) {
       planeWaveTransmission(params.energy, params.barrier, params.width)
     );
     statEls.regimeName.textContent = regime.name;
-    statEls.regimeSub.textContent = `E / V₀ = ${(
-      params.energy / params.barrier
-    ).toFixed(2)} · barrier ${params.width.toFixed(2)} a.u. wide`;
-    statEls.regimeNote.textContent = regime.note;
-    statEls.regimeDot.style.background = regime.color;
-    statEls.regimeDot.style.boxShadow = `0 0 10px ${regime.color}`;
-    statEls.ratioLabel.textContent = `${(params.energy / params.barrier).toFixed(
+    statEls.regimeSub.textContent = `E/V₀ ${(params.energy / params.barrier).toFixed(
       2
-    )} ×`;
-    statEls.ratioFill.style.width = `${clamp(
-      params.energy / params.barrier / 1.5,
-      0,
-      1
-    ) * 100}%`;
-    statEls.energy.textContent = `${params.energy.toFixed(2)} a.u.`;
-    statEls.barrier.textContent = `${params.barrier.toFixed(2)} a.u.`;
-    statEls.width.textContent = `${params.width.toFixed(2)} a.u.`;
-    statEls.sigma.textContent = `${params.sigma.toFixed(1)}`;
+    )} · a ${params.width.toFixed(2)}`;
+    regimeNote.textContent = regime.note;
+    stageCopy.innerHTML = `<strong>E = ${params.energy.toFixed(1)}</strong> against a barrier of <strong>V₀ = ${params.barrier.toFixed(1)}</strong>, width <strong>${params.width.toFixed(1)}</strong> a.u.`;
   }
 
   /* ---------------------------------------------------------------- controls */
@@ -851,16 +782,11 @@ export function mountConfigurationsPage(root) {
   const sliders = {};
 
   const sliderDefs = [
-    ["energy", "Particle energy", "E", (value) => `${value.toFixed(1)}`],
-    ["barrier", "Barrier height", "V₀", (value) => `${value.toFixed(1)}`],
-    ["width", "Barrier width", "a", (value) => `${value.toFixed(1)}`],
-    ["sigma", "Packet width", "σ", (value) => `${value.toFixed(1)}`],
-    [
-      "x0",
-      "Start position",
-      "x₀",
-      (value) => `${Math.round(value)}`,
-    ],
+    ["energy", "Energy", "E", (value) => value.toFixed(1)],
+    ["barrier", "Barrier height", "V₀", (value) => value.toFixed(1)],
+    ["width", "Barrier width", "a", (value) => value.toFixed(1)],
+    ["sigma", "Packet width", "σ", (value) => value.toFixed(1)],
+    ["x0", "Start position", "x₀", (value) => `${Math.round(value)}`],
   ];
 
   sliderDefs.forEach(([key, label, note, format]) => {

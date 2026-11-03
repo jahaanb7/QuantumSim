@@ -1,4 +1,4 @@
-/** Small DOM helpers used by both pages. */
+/** Small DOM helpers shared by the three views. */
 
 let idCounter = 0;
 
@@ -33,22 +33,22 @@ export function createSlider({
 }) {
   const id = `slider-${++idCounter}`;
   const root = document.createElement("div");
-  root.className = "control";
+  root.className = "field";
 
   const top = document.createElement("div");
-  top.className = "control-top";
+  top.className = "field-top";
 
   const labelEl = document.createElement("label");
   labelEl.htmlFor = id;
   labelEl.textContent = label;
   if (note) {
-    const noteEl = document.createElement("span");
-    noteEl.textContent = ` ${note}`;
+    const noteEl = document.createElement("small");
+    noteEl.textContent = note;
     labelEl.appendChild(noteEl);
   }
 
   const valueEl = document.createElement("span");
-  valueEl.className = "control-val";
+  valueEl.className = "field-val";
 
   top.append(labelEl, valueEl);
 
@@ -62,7 +62,7 @@ export function createSlider({
   input.setAttribute("aria-label", label);
 
   const scale = document.createElement("div");
-  scale.className = "control-scale";
+  scale.className = "field-scale";
   const minEl = document.createElement("span");
   const maxEl = document.createElement("span");
   minEl.textContent = format(min, true);
@@ -107,7 +107,7 @@ export function createSlider({
 
 export function createSwitch({ label, checked = false, onChange }) {
   const root = document.createElement("div");
-  root.className = "switch-row";
+  root.className = "toggle-row";
 
   const text = document.createElement("span");
   text.textContent = label;
@@ -134,6 +134,51 @@ export function createSwitch({ label, checked = false, onChange }) {
     },
     set(next) {
       button.setAttribute("aria-checked", String(Boolean(next)));
+    },
+  };
+}
+
+/** A row of mutually exclusive mono buttons. */
+export function createSegmented({ options, value, onChange }) {
+  const root = document.createElement("div");
+  root.className = "seg";
+
+  let active = value;
+  const buttons = options.map((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = option.label;
+    if (option.title) button.title = option.title;
+    button.setAttribute("aria-pressed", String(option.value === active));
+    if (option.disabled) button.disabled = true;
+    button.addEventListener("click", () => {
+      active = option.value;
+      buttons.forEach((item) => {
+        item.setAttribute(
+          "aria-pressed",
+          String(item.dataset.value === String(active))
+        );
+      });
+      onChange?.(option.value);
+    });
+    button.dataset.value = String(option.value);
+    root.appendChild(button);
+    return button;
+  });
+
+  return {
+    root,
+    set(next) {
+      active = next;
+      buttons.forEach((item) => {
+        item.setAttribute(
+          "aria-pressed",
+          String(item.dataset.value === String(active))
+        );
+      });
+    },
+    get value() {
+      return active;
     },
   };
 }

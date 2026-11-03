@@ -41,9 +41,9 @@ export function createStage(container, options = {}) {
   const controls = new OrbitControls(camera, canvas);
   controls.target.set(...target);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-  controls.rotateSpeed = 0.7;
-  controls.zoomSpeed = 0.85;
+  controls.dampingFactor = 0.07;
+  controls.rotateSpeed = 0.65;
+  controls.zoomSpeed = 0.9;
   controls.enablePan = enablePan;
   controls.minDistance = minDistance;
   controls.maxDistance = maxDistance;
@@ -147,9 +147,12 @@ export function disposeObject(root) {
   textures.forEach((texture) => texture.dispose());
 }
 
-/** Soft radial sprite used for all point-cloud glows. */
+/**
+ * Tight, hard-edged sprite for point clouds. Kept deliberately small so the
+ * clouds read as stippled data rather than neon glow.
+ */
 export function makeGlowTexture() {
-  const size = 64;
+  const size = 48;
   const canvas = document.createElement("canvas");
   canvas.width = size;
   canvas.height = size;
@@ -163,8 +166,9 @@ export function makeGlowTexture() {
     size / 2
   );
   gradient.addColorStop(0, "rgba(255,255,255,1)");
-  gradient.addColorStop(0.22, "rgba(255,255,255,0.9)");
-  gradient.addColorStop(0.5, "rgba(255,255,255,0.32)");
+  gradient.addColorStop(0.34, "rgba(255,255,255,0.98)");
+  gradient.addColorStop(0.5, "rgba(255,255,255,0.5)");
+  gradient.addColorStop(0.72, "rgba(255,255,255,0.08)");
   gradient.addColorStop(1, "rgba(255,255,255,0)");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, size, size);
@@ -178,9 +182,9 @@ export function makeGlowTexture() {
 export function makeTextSprite(
   text,
   {
-    color = "#8da0bd",
+    color = "#8e9082",
     fontSize = 52,
-    weight = 500,
+    weight = 400,
     height = 5,
     opacity = 1,
     align = "center",
@@ -188,7 +192,7 @@ export function makeTextSprite(
 ) {
   const dpr = 2;
   const fontFamily =
-    '"SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif';
+    '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, monospace';
   const measureCanvas = document.createElement("canvas");
   const measureCtx = measureCanvas.getContext("2d");
   const font = `${weight} ${fontSize}px ${fontFamily}`;
