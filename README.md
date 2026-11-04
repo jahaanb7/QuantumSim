@@ -23,6 +23,7 @@ runtime dependency other than a local copy of [Three.js](https://threejs.org/).
 ## Contents
 
 - [Quick start](#quick-start)
+- [Theme and motion](#theme-and-motion)
 - [Tour](#tour)
 - [Physics and mathematics](#physics-and-mathematics)
   - [Atomic probability clouds](#1-atomic-probability-clouds)
@@ -62,6 +63,28 @@ the top navigation bar. Drag to orbit a 3D scene, scroll or pinch to zoom.
 There is nothing to install and nothing to compile. Three.js r180 is vendored
 in `vendor/` so the lab also works offline.
 
+## Theme and motion
+
+The interface chrome is grayscale, while every scientific mark — orbital dots,
+wavefunction surfaces, phase clouds, charts and legends — is drawn from a
+two-blue data palette: light `#a9d3ff` and deep `#3f7fd9`. The blues carry the
+distinctions that hue used to carry, with opacity and position doing the rest.
+**Dark** is the default; the control at the right of the masthead switches to
+**Light** and remembers the choice in `localStorage`. The scientific plates
+stay dark in both themes so plotted values keep the same contrast on screen
+and in screenshots.
+
+Motion is limited to the instruments themselves:
+
+- a slow scan line across the active plate;
+- a left-to-right wipe as plotted canvases mount;
+- staggered title, control-rail and measurement-ribbon entrances;
+- a rule that grows under the active section, and a cross-fade when the theme
+  changes.
+
+All of it is decorative and stops under `prefers-reduced-motion: reduce`; the
+simulations, charts and controls remain fully usable without motion.
+
 ---
 
 ## Tour
@@ -79,8 +102,8 @@ between a free quantum-number laboratory and an indexed library of nine atoms.
   - **Cloud** — the Monte-Carlo point cloud, with density represented by dot
     concentration and signed phase tint in the custom builder.
   - **Slice** — a signed cross-section of ψ through an automatically chosen
-    informative plane. Cream is positive, rust is negative, and dark bands are
-    nodes.
+    informative plane. Light blue is positive, deep blue is negative, and dark
+    bands are nodes.
   - **Radial** — `P(r) = r²|R|²`, normalized to its peak, with the most-probable
     radius, mean radius and radial-node markers.
 - The effective charge `Z_eff` is adjustable in the custom builder. The atom
@@ -88,7 +111,7 @@ between a free quantum-number laboratory and an indexed library of nine atoms.
 - Sample count, auto-orbit, phase tint and element/orbital visibility remain
   available as instrument controls.
 
-The colour of a cloud identifies its orbital; its **density of dots** estimates
+The blue shade of a cloud identifies its orbital; its **density of dots** estimates
 `|ψ|²`. More sample points produce a smoother estimate, not more electrons.
 
 ### Wavefunction
@@ -100,7 +123,7 @@ controls occupy the left rail, while the dark field sits on the right.
 - **Display** switches among the signed surface (`ψ`), probability density
   (`|ψ|²`) and a **Plan map** contour view. The map is generated from the same
   analytic state as the surface, not a separate illustrative dataset.
-- Positive and negative lobes retain the cream/rust sign mapping; nodal lines
+- Positive and negative lobes retain the light-blue/deep-blue sign mapping; nodal lines
   are detected from sign crossings in the sampled field.
 - **Superpose ground state** creates a coherent superposition with the ground
   state. The phase playback advances the relative phase; the state is normalized
@@ -111,7 +134,7 @@ controls occupy the left rail, while the dark field sits on the right.
 ### Quantum tunneling
 
 A Gaussian wave packet starts on the left and scatters from a rectangular
-gold barrier. The 3D cloud is coloured by the phase of ψ, and a synchronized
+blue barrier. The 3D cloud is shaded by the phase of ψ, and a synchronized
 `P(x,t) = |ψ(x,t)|²` trace sits below the plate.
 
 - Six presets load physically distinct configurations.
@@ -283,7 +306,7 @@ decorative glow.
   cloud brightness is not weighted by occupancy. The legend chips show the
   electron counts.
 - The nucleus is drawn at the origin as a visual reference, not to scale.
-- Orbital colours are labels, not physical quantities.
+- Orbital shades are labels, not physical quantities.
 
 ### Approximations and caveats
 
@@ -559,9 +582,11 @@ visualisation of the 1D density:
   `1.7 a.u.` (clamped at four standard deviations). This turns the line density
   into a visible tube.
 - Dot colour encodes the **phase** `arg ψ(x,t)`, mapped through a cyclic
-  blue → cyan → violet → amber palette. Phase has no meaning where the density
-  vanishes, so colour is only meaningful where dots are visible.
-- The amber slab has the physical barrier width `a`; its height and depth are
+  deep blue → light blue → deep blue ramp. A single frame shows phase modulo
+  the ramp but not its direction; playback makes the rotation legible. Phase
+  has no meaning where the density vanishes, so the shade is only meaningful
+  where dots are visible.
+- The blue slab has the physical barrier width `a`; its height and depth are
   presentational. The floor grid and the `x` axis are orientation aids, not
   measured quantities.
 - `9,000` dots are sampled per saved frame. Each frame's dots are sampled from

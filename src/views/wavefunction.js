@@ -30,10 +30,10 @@ const PLAY_ICON =
 const PAUSE_ICON =
   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
 
-const BASE = new THREE.Color("#2b2c25");
-const POSITIVE = new THREE.Color("#ede6d3");
-const NEGATIVE = new THREE.Color("#c8663f");
-const DENSITY = new THREE.Color("#bccbae");
+const BASE = new THREE.Color("#0a1018");
+const POSITIVE = new THREE.Color("#b9d8fb");
+const NEGATIVE = new THREE.Color("#3f7fd9");
+const DENSITY = new THREE.Color("#a9d3ff");
 
 const stateLabel = (nx, ny) =>
   `ψ<sub>${nx}</sub><sub>${ny}</sub>`;
@@ -129,15 +129,15 @@ export function mountWavefunctionPage(root) {
   surfaceGroup.rotation.x = -Math.PI / 2;
   stage.scene.add(surfaceGroup);
 
-  stage.scene.add(new THREE.HemisphereLight(0xfff7e7, 0x11120e, 1.5));
-  const keyLight = new THREE.DirectionalLight(0xfff2d8, 2.1);
+  stage.scene.add(new THREE.HemisphereLight(0xf2f8ff, 0x0a1018, 1.5));
+  const keyLight = new THREE.DirectionalLight(0xeaf4ff, 2.1);
   keyLight.position.set(4, 6, 5);
   stage.scene.add(keyLight);
-  const rimLight = new THREE.DirectionalLight(0x9fb2be, 0.9);
+  const rimLight = new THREE.DirectionalLight(0x9cc7fa, 0.9);
   rimLight.position.set(-5, 3, -4);
   stage.scene.add(rimLight);
 
-  const grid = new THREE.GridHelper(2.62, 13, 0x404237, 0x292b23);
+  const grid = new THREE.GridHelper(2.62, 13, 0x1d2c3c, 0x111a24);
   grid.material.transparent = true;
   grid.material.opacity = 0.62;
   grid.material.depthWrite = false;
@@ -152,7 +152,7 @@ export function mountWavefunctionPage(root) {
   const frame = new THREE.LineLoop(
     new THREE.BufferGeometry().setFromPoints(framePoints),
     new THREE.LineBasicMaterial({
-      color: 0x555849,
+      color: 0x2c4056,
       transparent: true,
       opacity: 0.55,
     })
@@ -160,7 +160,7 @@ export function mountWavefunctionPage(root) {
   stage.scene.add(frame);
 
   const xLabel = makeTextSprite("x", {
-    color: "#85877a",
+    color: "#7f9ab5",
     fontSize: 46,
     height: 0.13,
   });
@@ -168,7 +168,7 @@ export function mountWavefunctionPage(root) {
   surfaceGroup.add(xLabel);
 
   const yLabel = makeTextSprite("y", {
-    color: "#85877a",
+    color: "#7f9ab5",
     fontSize: 46,
     height: 0.13,
   });
@@ -176,7 +176,7 @@ export function mountWavefunctionPage(root) {
   surfaceGroup.add(yLabel);
 
   const psiLabel = makeTextSprite("ψ", {
-    color: "#85877a",
+    color: "#7f9ab5",
     fontSize: 46,
     height: 0.13,
   });
@@ -284,7 +284,7 @@ export function mountWavefunctionPage(root) {
 
     if (state.display === "contour") {
       els.copy.textContent =
-        "A plan view of the same normalized state. Cream is positive, rust is negative, and the thin dark curves are nodal lines.";
+        "A plan view of the same normalized state. Light blue is positive, deep blue is negative, and the thin dark curves are nodal lines.";
       els.note.innerHTML =
         "<strong>Read the map.</strong> This is the same sampled state as the surface, seen from above. The field crosses zero at the dark nodal lines; its sign tells you which way the wavefunction points.";
     } else if (state.display === "psi") {
@@ -303,8 +303,8 @@ export function mountWavefunctionPage(root) {
   function updateLegend() {
     if (state.display === "density") {
       els.legend.innerHTML = `
-        <span class="legend-key"><i style="background:#bccbae"></i>|ψ|²</span>
-        <span class="legend-key"><i style="background:#5a5c4f"></i>ψ = 0</span>
+        <span class="legend-key"><i style="background:#a9d3ff"></i>|ψ|²</span>
+        <span class="legend-key"><i style="background:#5e7388"></i>ψ = 0</span>
       `;
       return;
     }
@@ -313,9 +313,9 @@ export function mountWavefunctionPage(root) {
       : "";
     els.legend.innerHTML = `
       ${plan}
-      <span class="legend-key"><i style="background:#ede6d3"></i>ψ &gt; 0</span>
-      <span class="legend-key"><i style="background:#c8663f"></i>ψ &lt; 0</span>
-      <span class="legend-key"><i style="background:#5a5c4f"></i>ψ = 0</span>
+      <span class="legend-key"><i style="background:#b9d8fb"></i>ψ &gt; 0</span>
+      <span class="legend-key"><i style="background:#3f7fd9"></i>ψ &lt; 0</span>
+      <span class="legend-key"><i style="background:#5e7388"></i>ψ = 0</span>
     `;
   }
 
@@ -485,9 +485,9 @@ export function mountWavefunctionPage(root) {
       }
     }
 
-    const positive = [237, 230, 211];
-    const negative = [200, 102, 63];
-    const base = [19, 20, 15];
+    const positive = [185, 216, 251];
+    const negative = [63, 127, 217];
+    const base = [8, 12, 18];
     for (let i = 0; i < values.length; i++) {
       const value = values[i];
       const magnitude = maxValue > 0 ? Math.pow(Math.abs(value) / maxValue, 0.45) : 0;
@@ -509,9 +509,9 @@ export function mountWavefunctionPage(root) {
         const below = row < resolution - 1 ? values[index + resolution] : value;
         if (Math.sign(value) !== Math.sign(right) || Math.sign(value) !== Math.sign(below)) {
           const offset = index * 4;
-          image.data[offset] = 36;
-          image.data[offset + 1] = 38;
-          image.data[offset + 2] = 31;
+          image.data[offset] = 20;
+          image.data[offset + 1] = 32;
+          image.data[offset + 2] = 48;
         }
       }
     }

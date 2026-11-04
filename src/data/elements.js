@@ -6,11 +6,11 @@
  * relative scale without pretending to be a many-body calculation.
  */
 
-const CORE = "#6d7867";
-const S2 = "#d5c39c";
-const P2 = "#c06a45";
-const S3 = "#93a8b3";
-const P3 = "#c2a052";
+const CORE = "#2f6fce";
+const S2 = "#a9d3ff";
+const P2 = "#3f7fd9";
+const S3 = "#8fc0f5";
+const P3 = "#dcecff";
 
 const cloud = (n, l, m, occ, zEff, color, opacity) => ({
   n,

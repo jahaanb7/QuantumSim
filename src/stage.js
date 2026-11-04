@@ -165,11 +165,11 @@ export function makeGlowTexture() {
     size / 2,
     size / 2
   );
-  gradient.addColorStop(0, "rgba(255,255,255,1)");
-  gradient.addColorStop(0.34, "rgba(255,255,255,0.98)");
-  gradient.addColorStop(0.5, "rgba(255,255,255,0.5)");
-  gradient.addColorStop(0.72, "rgba(255,255,255,0.08)");
-  gradient.addColorStop(1, "rgba(255,255,255,0)");
+  gradient.addColorStop(0, "rgba(255, 255, 255,1)");
+  gradient.addColorStop(0.34, "rgba(255, 255, 255,0.98)");
+  gradient.addColorStop(0.5, "rgba(255, 255, 255,0.5)");
+  gradient.addColorStop(0.72, "rgba(255, 255, 255,0.08)");
+  gradient.addColorStop(1, "rgba(255, 255, 255,0)");
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, size, size);
   const texture = new THREE.CanvasTexture(canvas);
@@ -182,7 +182,7 @@ export function makeGlowTexture() {
 export function makeTextSprite(
   text,
   {
-    color = "#8e9082",
+    color = "#929292",
     fontSize = 52,
     weight = 400,
     height = 5,

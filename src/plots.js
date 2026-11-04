@@ -4,13 +4,17 @@
  * has to describe its data, not repeat canvas plumbing.
  */
 
-export const PLATE_INK = "#ece5d2";
-export const PLATE_MUTED = "#929486";
-export const PLATE_FAINT = "#5f6154";
-export const PLATE_RULE = "#34362c";
-export const RUST = "#c76a44";
-export const GOLD = "#c2a052";
-export const MOSS = "#aeb9a0";
+export const PLATE_INK = "#eaf3ff";
+export const PLATE_MUTED = "#93a9c0";
+export const PLATE_FAINT = "#61788e";
+export const PLATE_RULE = "#253546";
+export const PLATE_LINE = "#8fc0f5";
+export const PLATE_BARRIER = "#9cc7fa";
+
+/* The two data blues used by every scientific mark. */
+export const DATA_LIGHT = "#a9d3ff";
+export const DATA_DEEP = "#3f7fd9";
+export const DATA_PALE = "#dcecff";
 
 export const PLOT_FONT = '"IBM Plex Mono", "SF Mono", ui-monospace, Menlo, monospace';
 
@@ -113,7 +117,7 @@ export function createOverlayCanvas(host, className = "plot-canvas") {
 
 /** Plot area with the plate frame and quiet axis rules. */
 export function drawPlotFrame(ctx, area) {
-  ctx.fillStyle = "#171812";
+  ctx.fillStyle = "#080d14";
   ctx.fillRect(area.x, area.y, area.w, area.h);
   rule(ctx, area.x, area.y + area.h, area.x + area.w, area.y + area.h, PLATE_RULE);
   rule(ctx, area.x, area.y, area.x, area.y + area.h, PLATE_RULE);

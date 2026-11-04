@@ -4,7 +4,7 @@
  * The 1-D Schrödinger equation is solved with the split-step Fourier method,
  * then |psi(x,t)|^2 is turned into a 3D point cloud: every dot is a sampled
  * detection position, offset transversally so the density reads as a volume.
- * Colour encodes the phase of psi.
+ * Luminance encodes the phase of psi.
  */
 
 import * as THREE from "three";
@@ -27,11 +27,11 @@ import {
   mono,
   rule,
   withAlpha,
-  PLATE_INK,
   PLATE_MUTED,
   PLATE_FAINT,
   PLATE_RULE,
-  GOLD,
+  PLATE_BARRIER,
+  DATA_LIGHT,
 } from "../plots.js";
 
 const FRAMES = 120;
@@ -40,11 +40,11 @@ const FPS = 30;
 const TAU = Math.PI * 2;
 
 const PHASE_STOPS = [
-  [0, "#4c6c8f"],
-  [0.28, "#7fa79a"],
-  [0.55, "#d3c19b"],
-  [0.82, "#c46a45"],
-  [1, "#4c6c8f"],
+  [0, "#16345c"],
+  [0.28, "#2f6fce"],
+  [0.55, "#a9d3ff"],
+  [0.82, "#2f6fce"],
+  [1, "#16345c"],
 ];
 
 const PRESETS = [
@@ -164,7 +164,7 @@ export function mountConfigurationsPage(root) {
           <span class="plate-index">Plate 03</span>
         </div>
         <div class="stage-legend static">
-          <span class="legend-key"><i style="background:#d3c19b"></i>density ∝ |ψ|²</span>
+          <span class="legend-key"><i style="background:#a9d3ff"></i>density ∝ |ψ|²</span>
           <span class="legend-key"><i class="gradient" data-phase-key></i>phase</span>
           <span class="legend-key"><i class="amber"></i>barrier</span>
         </div>
@@ -286,7 +286,7 @@ export function mountConfigurationsPage(root) {
 
   /* ---------------------------------------------------------------- 3D pieces */
 
-  const floor = new THREE.GridHelper(190, 19, 0x3a3d31, 0x25271f);
+  const floor = new THREE.GridHelper(190, 19, 0x1d2c3c, 0x111a24);
   floor.position.y = -9.6;
   floor.material.transparent = true;
   floor.material.opacity = 0.5;
@@ -300,7 +300,7 @@ export function mountConfigurationsPage(root) {
   const axisLine = new THREE.Line(
     axisGeometry,
     new THREE.LineBasicMaterial({
-      color: 0x4d5142,
+      color: 0x2c4056,
       transparent: true,
       opacity: 0.55,
     })
@@ -308,7 +308,7 @@ export function mountConfigurationsPage(root) {
   sceneContent.add(axisLine);
 
   const axisLabel = makeTextSprite("x", {
-    color: "#77796c",
+    color: "#7f9ab5",
     fontSize: 44,
     height: 2.2,
   });
@@ -318,7 +318,7 @@ export function mountConfigurationsPage(root) {
   const barrierGroup = new THREE.Group();
   const slabGeometry = new THREE.BoxGeometry(1, 17, 17);
   const slabMaterial = new THREE.MeshBasicMaterial({
-    color: 0xc2a052,
+    color: 0x2f6fce,
     transparent: true,
     opacity: 0.14,
     depthWrite: false,
@@ -330,7 +330,7 @@ export function mountConfigurationsPage(root) {
 
   const edgeGeometry = new THREE.EdgesGeometry(slabGeometry);
   const edgeMaterial = new THREE.LineBasicMaterial({
-    color: 0xd4b264,
+    color: 0x8fc0f5,
     transparent: true,
     opacity: 0.78,
   });
@@ -348,7 +348,7 @@ export function mountConfigurationsPage(root) {
       barrierLabel.material.dispose();
     }
     barrierLabel = makeTextSprite(`V₀ ${value.toFixed(1)}`, {
-      color: "#c2a052",
+      color: "#9cc7fa",
       fontSize: 44,
       height: 2.8,
     });
@@ -511,7 +511,7 @@ export function mountConfigurationsPage(root) {
     // inside it. Both come from the same solved state.
     const barrierLeft = toX(-params.width / 2);
     const barrierRight = toX(params.width / 2);
-    ctx.fillStyle = withAlpha(GOLD, 0.11);
+    ctx.fillStyle = withAlpha(PLATE_BARRIER, 0.13);
     ctx.fillRect(barrierLeft, plot.y, Math.max(1, barrierRight - barrierLeft), plot.h);
 
     ctx.beginPath();
@@ -522,7 +522,7 @@ export function mountConfigurationsPage(root) {
     }
     ctx.lineTo(plot.x + plot.w, base);
     ctx.closePath();
-    ctx.fillStyle = withAlpha(PLATE_INK, 0.12);
+    ctx.fillStyle = withAlpha(DATA_LIGHT, 0.14);
     ctx.fill();
 
     ctx.beginPath();
@@ -533,13 +533,13 @@ export function mountConfigurationsPage(root) {
       if (j === 0) ctx.moveTo(px, py);
       else ctx.lineTo(px, py);
     }
-    ctx.strokeStyle = PLATE_INK;
+    ctx.strokeStyle = DATA_LIGHT;
     ctx.lineWidth = 1.2;
     ctx.stroke();
 
     rule(ctx, plot.x, base, plot.x + plot.w, base, PLATE_RULE);
-    rule(ctx, barrierLeft, plot.y, barrierLeft, base, withAlpha(GOLD, 0.48));
-    rule(ctx, barrierRight, plot.y, barrierRight, base, withAlpha(GOLD, 0.48));
+    rule(ctx, barrierLeft, plot.y, barrierLeft, base, withAlpha(PLATE_BARRIER, 0.48));
+    rule(ctx, barrierRight, plot.y, barrierRight, base, withAlpha(PLATE_BARRIER, 0.48));
     rule(ctx, plot.x, plot.y, plot.x, base, PLATE_RULE);
 
     mono(ctx, 7.5, PLATE_FAINT);
@@ -551,7 +551,7 @@ export function mountConfigurationsPage(root) {
       ctx.fillText(value === 0 ? "0" : String(value).replace("-", "−"), x, base + 14);
     });
     ctx.textAlign = "left";
-    ctx.fillStyle = GOLD;
+    ctx.fillStyle = PLATE_BARRIER;
     ctx.fillText("V₀", Math.min(barrierLeft + 4, plot.x + plot.w - 18), plot.y + 10);
 
     mono(ctx, 7.5, PLATE_MUTED);
@@ -759,11 +759,11 @@ export function mountConfigurationsPage(root) {
     peakDensity = peakDensity || 1;
 
     const stops = [
-      [0.0, [17, 18, 15]],
-      [0.32, [76, 108, 143]],
-      [0.62, [127, 167, 154]],
-      [0.85, [211, 193, 155]],
-      [1.0, [196, 106, 69]],
+      [0.0, [8, 12, 18]],
+      [0.32, [30, 62, 110]],
+      [0.62, [65, 120, 195]],
+      [0.85, [150, 195, 245]],
+      [1.0, [215, 235, 255]],
     ];
 
     const mix = (t) => {
@@ -803,7 +803,7 @@ export function mountConfigurationsPage(root) {
 
     const centre = ((0 - min) / span) * width;
     const thickness = Math.max(1.5, (result.params.width / span) * width);
-    ctx.fillStyle = "rgba(194, 160, 82, 0.55)";
+    ctx.fillStyle = "rgba(169, 211, 255, 0.45)";
     ctx.fillRect(centre - thickness / 2, 0, thickness, height);
   }
 

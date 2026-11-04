@@ -1,9 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#efe9dc" />
+  <meta name="theme-color" content="#111111" />
+  <script>
+    // Apply the stored theme before the first paint to avoid a flash.
+    try {
+      var stored = localStorage.getItem("quantumsim-theme");
+      document.documentElement.dataset.theme = stored === "light" ? "light" : "dark";
+    } catch (error) {
+      document.documentElement.dataset.theme = "dark";
+    }
+  </script>
   <meta name="description" content="Build hydrogen-like orbitals by changing n, l, and m, then explore wavefunctions and quantum tunneling." />
   <title>QuantumSim — a small quantum atlas</title>
   <link rel="preload" href="fonts/instrument-serif-400.woff2" as="font" type="font/woff2" crossorigin />
@@ -40,9 +49,24 @@
         </a>
       </nav>
 
-      <div class="masthead-meta">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span>local compute · no server</span>
+      <div class="masthead-tools">
+        <div class="masthead-meta">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>local compute · no server</span>
+        </div>
+        <button
+          class="theme-toggle"
+          type="button"
+          role="switch"
+          aria-checked="true"
+          aria-label="Switch to light theme"
+          data-theme-toggle
+        >
+          <span class="theme-toggle-track" aria-hidden="true">
+            <span class="theme-toggle-thumb"></span>
+          </span>
+          <span class="theme-toggle-label" data-theme-label>Dark</span>
+        </button>
       </div>
     </header>
 

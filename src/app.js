@@ -1,3 +1,4 @@
+import { initTheme } from "./theme.js";
 import { mountElementsPage } from "./views/elements.js";
 import { mountWavefunctionPage } from "./views/wavefunction.js";
 import { mountConfigurationsPage } from "./views/configurations.js";
@@ -76,6 +77,8 @@ window.addEventListener("hashchange", () => {
 });
 
 window.addEventListener("pagehide", () => cleanup?.());
+
+initTheme();
 
 if (!window.location.hash) {
   window.history.replaceState(null, "", "#/elements");

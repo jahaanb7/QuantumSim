@@ -37,12 +37,13 @@ import {
   PLATE_MUTED,
   PLATE_FAINT,
   PLATE_RULE,
-  RUST,
+  PLATE_LINE,
+  DATA_LIGHT,
 } from "../plots.js";
 
-const POSITIVE = "#e2d7bd";
-const NEGATIVE = "#c76a44";
-const CUSTOM_BASE = "#cfc3a7";
+const POSITIVE = "#b9d8fb";
+const NEGATIVE = "#3f7fd9";
+const CUSTOM_BASE = "#a9d3ff";
 const NEGATIVE_RGB = new THREE.Color(NEGATIVE);
 const POSITIVE_RGB = new THREE.Color(POSITIVE);
 const CUSTOM_RGB = new THREE.Color(CUSTOM_BASE);
@@ -645,9 +646,9 @@ export function mountElementsPage(root) {
       }
     }
 
-    const positive = settings.phaseTint ? [226, 215, 189] : [207, 195, 167];
-    const negative = [199, 106, 68];
-    const base = [19, 20, 15];
+    const positive = settings.phaseTint ? [185, 216, 251] : [169, 211, 255];
+    const negative = [63, 127, 217];
+    const base = [7, 11, 17];
     for (let i = 0; i < density.length; i++) {
       const t = maxDensity > 0 ? Math.pow(density[i] / maxDensity, 0.36) : 0;
       const tint = signed[i] < 0 ? negative : positive;
@@ -666,7 +667,7 @@ export function mountElementsPage(root) {
     ctx.lineWidth = 1;
     ctx.strokeRect(x + 0.5, y + 0.5, square - 1, square - 1);
 
-    ctx.strokeStyle = "rgba(240, 233, 215, 0.15)";
+    ctx.strokeStyle = "rgba(169, 211, 255, 0.18)";
     ctx.beginPath();
     ctx.moveTo(x + square / 2, y);
     ctx.lineTo(x + square / 2, y + square);
@@ -762,7 +763,7 @@ export function mountElementsPage(root) {
     profile.forEach(([r, p]) => ctx.lineTo(xFor(r), yFor(p)));
     ctx.lineTo(plot.x + plot.w, base);
     ctx.closePath();
-    ctx.fillStyle = withAlpha(PLATE_INK, 0.11);
+    ctx.fillStyle = withAlpha(DATA_LIGHT, 0.16);
     ctx.fill();
 
     ctx.beginPath();
@@ -772,7 +773,7 @@ export function mountElementsPage(root) {
       if (index === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     });
-    ctx.strokeStyle = PLATE_INK;
+    ctx.strokeStyle = DATA_LIGHT;
     ctx.lineWidth = 1.25;
     ctx.stroke();
 
@@ -781,21 +782,21 @@ export function mountElementsPage(root) {
     );
     ctx.save();
     ctx.setLineDash([3, 4]);
-    ctx.strokeStyle = withAlpha(RUST, 0.7);
+    ctx.strokeStyle = withAlpha(PLATE_LINE, 0.7);
     zeros.forEach((r) => {
       const x = xFor(r);
-      rule(ctx, x, plot.y + 3, x, base, withAlpha(RUST, 0.6));
+      rule(ctx, x, plot.y + 3, x, base, withAlpha(PLATE_LINE, 0.6));
     });
     ctx.restore();
 
     const meanX = xFor(summary.mean);
-    rule(ctx, meanX, plot.y + 3, meanX, base, RUST, 1);
+    rule(ctx, meanX, plot.y + 3, meanX, base, PLATE_LINE, 1);
 
     const peakPoint = profile.reduce(
       (best, point) => (point[1] > best[1] ? point : best),
       profile[0]
     );
-    ctx.fillStyle = PLATE_INK;
+    ctx.fillStyle = DATA_LIGHT;
     ctx.beginPath();
     ctx.arc(xFor(peakPoint[0]), yFor(peakPoint[1]), 2.6, 0, Math.PI * 2);
     ctx.fill();
@@ -850,7 +851,7 @@ export function mountElementsPage(root) {
     const radius = Math.max(0.014, extent * 0.004);
     const sphere = new THREE.Mesh(
       new THREE.SphereGeometry(radius, 12, 12),
-      new THREE.MeshBasicMaterial({ color: 0xf0ead9 })
+      new THREE.MeshBasicMaterial({ color: 0xb9d8fb })
     );
     sphere.renderOrder = 4;
     nucleusGroup.add(sphere);
@@ -1066,12 +1067,12 @@ export function mountElementsPage(root) {
         profile.innerHTML = `<i style="background:${POSITIVE}"></i>P(r)`;
         const mean = document.createElement("span");
         mean.className = "legend-key";
-        mean.innerHTML = `<i style="background:${RUST};height:1px"></i>mean radius`;
+        mean.innerHTML = `<i style="background:${PLATE_LINE};height:1px"></i>mean radius`;
         els.legend.append(profile);
         if (custom.n - custom.l - 1 > 0) {
           const node = document.createElement("span");
           node.className = "legend-key";
-          node.innerHTML = `<i style="background:${RUST};height:1px"></i>radial node`;
+          node.innerHTML = `<i style="background:${PLATE_LINE};height:1px"></i>radial node`;
           els.legend.append(node);
         }
         els.legend.append(mean);
@@ -1084,7 +1085,7 @@ export function mountElementsPage(root) {
         negative.innerHTML = `<i style="background:${NEGATIVE}"></i>ψ &lt; 0`;
         const node = document.createElement("span");
         node.className = "legend-key";
-        node.innerHTML = `<i style="background:#5a5c4f"></i>node`;
+        node.innerHTML = `<i style="background:${PLATE_FAINT}"></i>node`;
         els.legend.append(positive, negative, node);
       } else {
         const density = document.createElement("span");
@@ -1092,7 +1093,7 @@ export function mountElementsPage(root) {
         density.innerHTML = `<i style="background:${CUSTOM_BASE}"></i>|ψ|²`;
         const node = document.createElement("span");
         node.className = "legend-key";
-        node.innerHTML = `<i style="background:#5a5c4f"></i>node`;
+        node.innerHTML = `<i style="background:${PLATE_FAINT}"></i>node`;
         els.legend.append(density, node);
       }
       return;
