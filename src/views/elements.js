@@ -135,6 +135,7 @@ export function mountElementsPage(root) {
         <div class="section-head"><span>Rendering</span><span>monte carlo</span></div>
         <div class="controls" data-render-controls></div>
         <p class="side-note"><strong>One-electron model.</strong> Energy depends only on n and Z_eff here. l changes the shape; m changes the orientation. In many-electron atoms, screening also lets l affect energy.</p>
+        <div class="field-tip"><strong>What to notice.</strong> Dot density estimates |ψ|²; more dots sharpen the estimate, they do not add electrons. <a href="#/learn">Field guide →</a></div>
       </div>
 
       <div class="side-foot"><span>hydrogen-like</span><span data-side-foot>Z_eff model</span></div>

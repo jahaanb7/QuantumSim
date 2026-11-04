@@ -1,17 +1,19 @@
 # QuantumSim
 
 An interactive, browser-based quantum physics lab. QuantumSim hosts three
-connected ways to inspect the Schrödinger equation:
+connected experiments and a field guide:
 
 1. **Orbital builder** — a hydrogen-like atomic orbital laboratory with a
    Monte-Carlo probability cloud, a signed cross-section and a radial
    probability instrument, plus an indexed atom library.
-2. **Wavefunction** — a two-dimensional infinite well explored as a signed
-   surface, a probability density and a synchronized plan map, with a coherent
-   superposition and phase playback.
+2. **Probability density** — a two-dimensional infinite well explored as a
+   signed 3D surface, a probability density and a synchronized plan map, with a
+   coherent superposition and phase playback.
 3. **Quantum tunneling** — a live, time-dependent wave-packet scattering
    experiment against a rectangular barrier, with presets, playback and a
    synchronized probability-density trace.
+4. **Field guide** — a source-checked article route with the Born rule, safe
+   claims for writing, numbers to quote, limits and references.
 
 Everything runs client-side. There is no build step, no server-side code and no
 runtime dependency other than a local copy of [Three.js](https://threejs.org/).
@@ -54,10 +56,11 @@ opened as a `file://` URL, because it uses ES modules and an import map.
 | Route | Page |
 | --- | --- |
 | `#/elements` | Orbital builder, radial instruments and atom library |
-| `#/wavefunction` | Two-dimensional box, signed surface and plan map |
+| `#/wavefunction` | Two-dimensional box, signed surface, density and plan map |
 | `#/configurations` | Wave-packet tunneling, scattering and density trace |
+| `#/learn` | Field guide: Born rule, safe claims, numbers and sources |
 
-The bare URL is normalised to `#/elements`. All three pages are reachable from
+The bare URL is normalised to `#/elements`. All four pages are reachable from
 the top navigation bar. Drag to orbit a 3D scene, scroll or pinch to zoom.
 
 There is nothing to install and nothing to compile. Three.js r180 is vendored
@@ -130,6 +133,9 @@ controls occupy the left rail, while the dark field sits on the right.
   before it is displayed.
 - **Amplitude** controls surface height only. It is not a probability
   amplitude and is hidden in the plan-map view.
+- The rail includes a short **What to notice** card and a link to the field
+  guide, so the 3D height, the `|ψ|²` density and the plan map can be read as
+  one state.
 
 ### Quantum tunneling
 
@@ -148,6 +154,15 @@ blue barrier. The 3D cloud is shaded by the phase of ψ, and a synchronized
   instantaneous transmission, final packet transmission, analytic plane-wave
   transmission, norm and regime.
 - Play, pause, replay and scrub are supported.
+
+### Field guide
+
+`#/learn` is the article-facing route. It states the Born rule, explains how to
+read a 3D height map without treating it as an extra spatial dimension,
+separates stationary states from the display-only phase playback, and lists
+claims that are safe or unsafe to make. It also collects the numbers worth
+quoting and a short reference list. Its contents links scroll the article; the
+plate cards open the three experiments.
 
 ---
 
@@ -793,6 +808,8 @@ The current pass was checked in Chromium with WebGL2:
 - the wavefunction route rendered the signed surface and the Plan map; the map
   canvas measured correctly on first display and its mode-specific explanatory
   note updated with the view;
+- the field-guide route rendered all nine sections; its contents links scrolled
+  the article and the console stayed clean;
 - the tunneling route rendered the 3D state and its synchronized density trace;
   pausing and scrubbing to frame 118 updated the frame label, time, trace,
   transmission and split readouts from the same solver frame;
@@ -817,6 +834,7 @@ src/stage.js                  shared Three.js renderer, camera, orbit controls
 src/ui.js                     sliders, switches and DOM helpers
 src/views/elements.js         orbital builder, cross-sections and radial instruments
 src/views/wavefunction.js     two-dimensional box, surface, density and plan map
+src/views/learn.js            field-guide article
 src/views/configurations.js   tunneling page, trace, playback and statistics
 src/plots.js                  shared high-DPI canvas sizing and plot typography
 src/data/elements.js          element data and orbital definitions

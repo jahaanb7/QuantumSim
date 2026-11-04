@@ -2,6 +2,7 @@ import { initTheme } from "./theme.js";
 import { mountElementsPage } from "./views/elements.js";
 import { mountWavefunctionPage } from "./views/wavefunction.js";
 import { mountConfigurationsPage } from "./views/configurations.js";
+import { mountLearnPage } from "./views/learn.js";
 
 const ROUTES = {
   elements: {
@@ -10,11 +11,15 @@ const ROUTES = {
   },
   wavefunction: {
     mount: mountWavefunctionPage,
-    title: "Wavefunction — QuantumSim",
+    title: "Probability density — QuantumSim",
   },
   configurations: {
     mount: mountConfigurationsPage,
     title: "Tunneling — QuantumSim",
+  },
+  learn: {
+    mount: mountLearnPage,
+    title: "Field guide — QuantumSim",
   },
 };
 

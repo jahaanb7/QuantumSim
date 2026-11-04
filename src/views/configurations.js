@@ -146,6 +146,7 @@ export function mountConfigurationsPage(root) {
         <div class="section-head"><span>Parameters</span><span>atomic units</span></div>
         <div class="controls"></div>
         <p class="side-note" data-regime-note></p>
+        <div class="field-tip"><strong>What to notice.</strong> The 3D tube encodes a 1D density; its transverse spread is for perception, not a second dimension. <a href="#/learn">Field guide →</a></div>
       </div>
 
       <div class="side-foot"><span>split-step</span><span>N = 1024</span></div>

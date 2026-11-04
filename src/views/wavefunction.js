@@ -45,7 +45,7 @@ export function mountWavefunctionPage(root) {
   page.innerHTML = `
     <aside class="side">
       <div class="side-head">
-        <p class="eyebrow"><span>02</span> Wavefunction</p>
+        <p class="eyebrow"><span>02</span> Probability density</p>
         <h1>The shape of<br><em>probability</em></h1>
         <p class="lede">A particle in a square box, cut open as a surface. The wave is signed; its square is probability.</p>
       </div>
@@ -63,6 +63,7 @@ export function mountWavefunctionPage(root) {
         <div class="controls" data-wave-controls></div>
 
         <p class="side-note" data-wave-note><strong>Read the surface.</strong> Positive lobes rise above the plane; negative lobes sink below it. Nodes are the dark lines at zero.</p>
+        <div class="field-tip"><strong>What to notice.</strong> Height is a display choice; the probability is |ψ|². Switch to Plan map to read the same state from above. <a href="#/learn">Field guide →</a></div>
       </div>
 
       <div class="side-foot"><span>2D box</span><span>L = 1</span></div>

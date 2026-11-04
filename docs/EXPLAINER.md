@@ -2,15 +2,15 @@
 
 **From the Schrödinger equation to a browser point cloud**
 
-This is a working explainer for the three simulations in QuantumSim, not a
-generic quantum-mechanics primer. Every equation below is tied to a function in
-this repository and every worked number comes from the code. Every quantitative
-plate uses the same equations as the browser; the orbital and tunneling data
-were exported directly from the actual JavaScript modules.
+This is a working explainer for the three simulations and the field guide in
+QuantumSim, not a generic quantum-mechanics primer. Every equation below is tied
+to a function in this repository and every worked number comes from the code.
+Every quantitative plate uses the same equations as the browser; the orbital and
+tunneling data were exported directly from the actual JavaScript modules.
 
 Read it in order, or use it as a reference:
 
-1. [The three experiments](#1-the-three-experiments)
+1. [The experiments and the field guide](#1-the-experiments-and-the-field-guide)
 2. [Units and the one equation](#2-units-and-the-one-equation)
 3. [Atomic orbitals](#3-atomic-orbitals)
 4. [The two-dimensional box](#4-the-two-dimensional-box)
@@ -27,16 +27,17 @@ Read it in order, or use it as a reference:
 
 ---
 
-## 1. The three experiments
+## 1. The experiments and the field guide
 
-QuantumSim is a single static page with three hash routes. Each route owns a
-different physical question.
+QuantumSim is a single static page with three experiment routes and a field
+guide. Each route owns a different physical question.
 
 | Route | Question | Scientific object | Main code |
 | --- | --- | --- | --- |
 | `#/elements` | Where is an electron likely to be? | `ψ_nlm(r)` for a hydrogen-like atom | `src/physics/orbitals.js` |
-| `#/wavefunction` | What does a wavefunction look like in space? | `ψ_nx,ny(x,y)` for a particle in a square box | inline in `src/views/wavefunction.js` |
+| `#/wavefunction` | Where is a particle in a box likely to be? | `ψ_nx,ny(x,y)` for a particle in a square box | `src/views/wavefunction.js` |
 | `#/configurations` | How does probability move through a barrier? | `ψ(x,t)` from the 1D TDSE | `src/physics/tdse.js` |
+| `#/learn` | How should I read and write about this? | Born rule, claims, limits, references | `src/views/learn.js` |
 
 They share a visual language—paper chrome, a dark measurement plate, mono
 labels, a metric ribbon—but they do not share a physics shortcut. The orbital
@@ -74,7 +75,7 @@ bound to a proton:
 In these units `ħ = mₑ = e = 4πε₀ = 1`. The kinetic operator becomes `−½∇²`,
 a plane wave has energy `E = k²/2`, and the Coulomb potential is simply
 `V = −Z/r`. This removes constants from the code and makes the numbers
-comparable across the three pages.
+comparable across the three simulation pages.
 
 The UI converts at the edges:
 
@@ -87,7 +88,7 @@ A useful scale intuition: the default tunneling barrier is `V₀ = 4 Eₕ ≈ 10
 high and `a = 1.2 a₀ ≈ 0.64 Å` wide. The whole simulated encounter lasts about
 `33 a.u. ≈ 0.8 fs`.
 
-### 2.2 The equation all three pages serve
+### 2.2 The equation the three simulation pages serve
 
 The non-relativistic, single-particle Schrödinger equation is
 
@@ -687,7 +688,8 @@ E_{n_xn_y}
 =\frac{n_x^2+n_y^2}{2}\,E_{11},
 $$
 
-where `E₁₁ = π²/2 ≈ 4.9348` hartree `≈ 134.3 eV`.
+where `E₁₁ = π² ≈ 9.8696` hartree `≈ 268.6 eV`. (The one-dimensional ground
+state is `π²/2`; the two-dimensional ground state is twice that.)
 
 The page labels energy in units of `E₁₁`, which is why the ribbon shows
 `E/E₁₁ = 2.5` for `ψ₂₁`, `4.0` for `ψ₂₂`, and `5.0` for `ψ₃₁`.
@@ -1346,7 +1348,7 @@ the loader paint before the main thread is occupied.
 
 ### 6.4 Performance budget
 
-The three pages have different costs:
+The three simulation pages have different costs:
 
 | Page | Work | Typical cost |
 | --- | --- | --- |
@@ -1510,7 +1512,7 @@ extent  22.77
 ```
 
 These are smoke tests, not a formal test suite. The browser checks that
-accompanied this build exercised all three routes, the `n=5/f` builder, the
+accompanied this build exercised all four routes, the `n=5/f` builder, the
 density/superposition toggle, the over-barrier and tunneling presets, and the
 mobile layout. A dedicated automated visual or numerical regression suite is
 still future work.
@@ -1590,7 +1592,8 @@ phases in momentum space; second-order in time.
 | `src/physics/orbitals.js` | radial functions, CDF, Monte-Carlo sampler |
 | `src/data/elements.js` | nine elements and cloud definitions |
 | `src/views/elements.js` | orbital page, specimen index, builder |
-| `src/views/wavefunction.js` | 2D box surface and superposition |
+| `src/views/wavefunction.js` | 2D box surface, density, plan map and superposition |
+| `src/views/learn.js` | field-guide article route |
 | `src/physics/tdse.js` | split-step TDSE, measurements, analytic `T` |
 | `src/physics/fft.js` | radix-2 complex FFT |
 | `src/views/configurations.js` | tunneling page, playback, thumbnails |
