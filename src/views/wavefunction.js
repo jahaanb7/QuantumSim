@@ -9,6 +9,17 @@
 import * as THREE from "three";
 import { createStage, makeTextSprite } from "../stage.js";
 import { createSlider, createSwitch, createSegmented } from "../ui.js";
+import {
+  createOverlayCanvas,
+  mono,
+  rule,
+  withAlpha,
+  drawCaption,
+  PLATE_INK,
+  PLATE_MUTED,
+  PLATE_FAINT,
+  PLATE_RULE,
+} from "../plots.js";
 
 const SEGMENTS = 96;
 const TAU = Math.PI * 2;
@@ -51,7 +62,7 @@ export function mountWavefunctionPage(root) {
         <div data-mix-host></div>
         <div class="controls" data-wave-controls></div>
 
-        <p class="side-note"><strong>Read the surface.</strong> Positive lobes rise above the plane; negative lobes sink below it. Nodes are the dark lines at zero.</p>
+        <p class="side-note" data-wave-note><strong>Read the surface.</strong> Positive lobes rise above the plane; negative lobes sink below it. Nodes are the dark lines at zero.</p>
       </div>
 
       <div class="side-foot"><span>2D box</span><span>L = 1</span></div>
@@ -60,13 +71,14 @@ export function mountWavefunctionPage(root) {
     <section class="work">
       <div class="stage">
         <div class="stage-canvas"></div>
+        <div class="stage-2d" data-stage-map hidden></div>
         <div class="stage-head">
           <p class="eyebrow">02 / Two-dimensional box</p>
           <h1 class="stage-title" data-stage-title>ψ₂₁</h1>
           <p class="stage-copy" data-stage-copy></p>
         </div>
         <div class="stage-meta">
-          <span>96 × 96 grid</span>
+          <span data-wave-meta>96 × 96 grid</span>
           <span class="plate-index">Plate 02</span>
         </div>
         <div class="stage-legend" data-legend></div>
@@ -96,6 +108,9 @@ export function mountWavefunctionPage(root) {
     playback: page.querySelector(".wave-playback"),
     playButton: page.querySelector("[data-play]"),
     time: page.querySelector("[data-time]"),
+    mapHost: page.querySelector("[data-stage-map]"),
+    meta: page.querySelector("[data-wave-meta]"),
+    note: page.querySelector("[data-wave-note]"),
   };
 
   const stage = createStage(page.querySelector(".stage-canvas"), {
@@ -194,8 +209,15 @@ export function mountWavefunctionPage(root) {
     height: 0.8,
   };
 
+  const mapCanvas = createOverlayCanvas(els.mapHost, "wave-plan");
+  mapCanvas.onResize(() => {
+    if (state.display === "contour") drawContour();
+  });
+
   let peak = 1;
   let lastRibbon = 0;
+  let phaseRaf = 0;
+  let lastPhase = 0;
 
   /* ---------------------------------------------------------------- surface */
 
@@ -215,7 +237,11 @@ export function mountWavefunctionPage(root) {
         const ground =
           Math.sin((Math.PI * (x + 1)) / 2) *
           Math.sin((Math.PI * (y + 1)) / 2);
-        value = (a * Math.cos(state.phase) + ground) / 2;
+        // |cos(phase)·excited + ground|² integrates to
+        // (1 + cos²phase)/4 for orthonormal states. Normalize the displayed
+        // coherent state so its squared magnitude is a true density.
+        const norm = 2 / Math.sqrt(1 + Math.cos(state.phase) ** 2);
+        value = ((a * Math.cos(state.phase) + ground) / 2) * norm;
       }
 
       if (state.display === "density") value *= value;
@@ -256,10 +282,22 @@ export function mountWavefunctionPage(root) {
       ? `${stateLabel(state.nx, state.ny)} + ψ<sub>1</sub><sub>1</sub>`
       : stateLabel(state.nx, state.ny);
 
-    els.copy.textContent =
-      state.display === "psi"
-        ? "The real part of the wavefunction. Positive lobes rise above the plane; negative lobes sink below it."
-        : "The probability density, |ψ|². Every lobe is positive; the wavefunction is zero along the dark nodal lines.";
+    if (state.display === "contour") {
+      els.copy.textContent =
+        "A plan view of the same normalized state. Cream is positive, rust is negative, and the thin dark curves are nodal lines.";
+      els.note.innerHTML =
+        "<strong>Read the map.</strong> This is the same sampled state as the surface, seen from above. The field crosses zero at the dark nodal lines; its sign tells you which way the wavefunction points.";
+    } else if (state.display === "psi") {
+      els.copy.textContent =
+        "The real part of the wavefunction. Positive lobes rise above the plane; negative lobes sink below it.";
+      els.note.innerHTML =
+        "<strong>Read the surface.</strong> Positive lobes rise above the plane; negative lobes sink below it. Nodes are the dark lines at zero.";
+    } else {
+      els.copy.textContent =
+        "The probability density, |ψ|². Every lobe is positive; the wavefunction is zero along the dark nodal lines.";
+      els.note.innerHTML =
+        "<strong>Read the density.</strong> Squaring removes the sign, so every lobe is positive. The dark lines mark where the wavefunction itself is zero.";
+    }
   }
 
   function updateLegend() {
@@ -270,11 +308,49 @@ export function mountWavefunctionPage(root) {
       `;
       return;
     }
+    const plan = state.display === "contour"
+      ? `<span class="legend-key">plan view</span>`
+      : "";
     els.legend.innerHTML = `
+      ${plan}
       <span class="legend-key"><i style="background:#ede6d3"></i>ψ &gt; 0</span>
       <span class="legend-key"><i style="background:#c8663f"></i>ψ &lt; 0</span>
       <span class="legend-key"><i style="background:#5a5c4f"></i>ψ = 0</span>
     `;
+  }
+
+  function tickPhase(now) {
+    phaseRaf = 0;
+    if (!state.mix || !state.playing) return;
+
+    const dt = lastPhase ? Math.min(0.05, (now - lastPhase) / 1000) : 0;
+    lastPhase = now;
+    if (dt > 0) {
+      state.phase += dt * 0.85;
+      if (state.display === "contour") drawContour();
+      else updateSurface();
+      els.time.textContent = `φ ${state.phase.toFixed(2)} rad`;
+
+      lastRibbon += dt;
+      if (lastRibbon > 0.12) {
+        lastRibbon = 0;
+        updateRibbon();
+      }
+    }
+    phaseRaf = window.requestAnimationFrame(tickPhase);
+  }
+
+  function syncClock() {
+    if (state.mix && state.playing) {
+      if (!phaseRaf) {
+        lastPhase = 0;
+        phaseRaf = window.requestAnimationFrame(tickPhase);
+      }
+    } else {
+      if (phaseRaf) window.cancelAnimationFrame(phaseRaf);
+      phaseRaf = 0;
+      lastPhase = 0;
+    }
   }
 
   function updatePlayback() {
@@ -287,6 +363,7 @@ export function mountWavefunctionPage(root) {
     els.time.textContent = `φ ${state.phase.toFixed(2)} rad`;
     els.mixLabel.textContent = state.mix ? "on" : "off";
     els.stateLabel.innerHTML = stateLabel(state.nx, state.ny);
+    syncClock();
   }
 
   function updateRibbon() {
@@ -329,11 +406,145 @@ export function mountWavefunctionPage(root) {
   }
 
   function refresh({ copy = true } = {}) {
-    updateSurface();
+    if (state.display !== "contour") updateSurface();
     if (copy) updateCopy();
     updateLegend();
     updateRibbon();
     updatePlayback();
+    syncMapView();
+  }
+
+  function syncMapView() {
+    const mapped = state.display === "contour";
+    els.mapHost.hidden = !mapped;
+    page.dataset.view = mapped ? "contour" : "wave";
+    els.meta.textContent = mapped ? "256² plan map" : "96 × 96 grid";
+    heightSlider.root.hidden = mapped;
+    // Do not keep rendering a hidden WebGL surface underneath the plan map.
+    if (mapped) stage.stop();
+    else stage.start();
+    if (mapped) {
+      void els.mapHost.offsetWidth;
+      mapCanvas.resize();
+      drawContour();
+      window.requestAnimationFrame(() => {
+        if (state.display !== "contour") return;
+        mapCanvas.resize();
+        drawContour();
+      });
+    }
+  }
+
+  function drawContour() {
+    if (state.display !== "contour" || els.mapHost.hidden) return;
+    const size = mapCanvas.resize();
+    if (size.width < 40 || size.height < 80) return;
+    const ctx = mapCanvas.ctx;
+    const stageBox = page.querySelector(".stage").getBoundingClientRect();
+    const headBox = page.querySelector(".stage-head").getBoundingClientRect();
+    const headBottom = headBox.bottom - stageBox.top;
+    const narrow = size.width < 700;
+    const margin = narrow ? 20 : 34;
+    const top = Math.min(
+      size.height - 100,
+      Math.max(narrow ? 190 : 200, headBottom + 24)
+    );
+    const bottom = size.height - (state.mix ? (narrow ? 104 : 88) : narrow ? 58 : 72);
+    const square = Math.min(
+      size.width - margin * 2,
+      Math.max(80, bottom - top),
+      470
+    );
+    const x = (size.width - square) / 2;
+    const y = top + Math.max(0, (bottom - top - square) / 2);
+    const resolution = 256;
+    const source = document.createElement("canvas");
+    source.width = resolution;
+    source.height = resolution;
+    const sourceCtx = source.getContext("2d");
+    const image = sourceCtx.createImageData(resolution, resolution);
+    const values = new Float32Array(resolution * resolution);
+    let maxValue = 0;
+
+    for (let row = 0; row < resolution; row++) {
+      const v = 1 - row / (resolution - 1);
+      for (let col = 0; col < resolution; col++) {
+        const u = col / (resolution - 1);
+        const a =
+          Math.sin(state.nx * Math.PI * u) *
+          Math.sin(state.ny * Math.PI * v);
+        let value = a;
+        if (state.mix) {
+          const ground = Math.sin(Math.PI * u) * Math.sin(Math.PI * v);
+          const norm = 2 / Math.sqrt(1 + Math.cos(state.phase) ** 2);
+          value = ((a * Math.cos(state.phase) + ground) / 2) * norm;
+        }
+        const index = row * resolution + col;
+        values[index] = value;
+        maxValue = Math.max(maxValue, Math.abs(value));
+      }
+    }
+
+    const positive = [237, 230, 211];
+    const negative = [200, 102, 63];
+    const base = [19, 20, 15];
+    for (let i = 0; i < values.length; i++) {
+      const value = values[i];
+      const magnitude = maxValue > 0 ? Math.pow(Math.abs(value) / maxValue, 0.45) : 0;
+      const tint = value < 0 ? negative : positive;
+      const offset = i * 4;
+      image.data[offset] = base[0] + (tint[0] - base[0]) * magnitude;
+      image.data[offset + 1] = base[1] + (tint[1] - base[1]) * magnitude;
+      image.data[offset + 2] = base[2] + (tint[2] - base[2]) * magnitude;
+      image.data[offset + 3] = 255;
+    }
+
+    // A one-pixel zero crossing is more honest than a decorative outline:
+    // it follows the same sampled state as the colour field.
+    for (let row = 0; row < resolution; row++) {
+      for (let col = 0; col < resolution; col++) {
+        const index = row * resolution + col;
+        const value = values[index];
+        const right = col < resolution - 1 ? values[index + 1] : value;
+        const below = row < resolution - 1 ? values[index + resolution] : value;
+        if (Math.sign(value) !== Math.sign(right) || Math.sign(value) !== Math.sign(below)) {
+          const offset = index * 4;
+          image.data[offset] = 36;
+          image.data[offset + 1] = 38;
+          image.data[offset + 2] = 31;
+        }
+      }
+    }
+
+    sourceCtx.putImageData(image, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(source, x, y, square, square);
+    ctx.strokeStyle = PLATE_RULE;
+    ctx.strokeRect(x + 0.5, y + 0.5, square - 1, square - 1);
+
+    drawCaption(
+      ctx,
+      state.mix ? "plan view · superposition" : "plan view · stationary state",
+      x,
+      y - 14
+    );
+    mono(ctx, 7.5, PLATE_MUTED);
+    ctx.textAlign = "right";
+    ctx.fillText(`φ ${state.phase.toFixed(2)} rad`, x + square, y - 14);
+    mono(ctx, 7.5, PLATE_FAINT);
+    ctx.textAlign = "left";
+    ctx.fillText("0", x, y + square + 15);
+    ctx.textAlign = "center";
+    ctx.fillText("0.5", x + square / 2, y + square + 15);
+    ctx.textAlign = "right";
+    ctx.fillText("1", x + square, y + square + 15);
+    ctx.textAlign = "center";
+    ctx.fillText("x / L", x + square / 2, y + square + 30);
+    ctx.save();
+    ctx.translate(x - 13, y + square / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText("y / L", 0, 0);
+    ctx.restore();
   }
 
   /* ---------------------------------------------------------------- controls */
@@ -362,12 +573,17 @@ export function mountWavefunctionPage(root) {
     options: [
       { value: "psi", label: "ψ signed" },
       { value: "density", label: "|ψ|² density" },
+      { value: "contour", label: "Plan map" },
     ],
     value: state.display,
     onChange: (value) => {
       state.display = value;
       els.displayLabel.textContent =
-        value === "psi" ? "signed wave" : "probability";
+        value === "psi"
+          ? "signed wave"
+          : value === "density"
+          ? "probability"
+          : "plan view";
       refresh();
     },
   });
@@ -408,23 +624,16 @@ export function mountWavefunctionPage(root) {
 
   /* ---------------------------------------------------------------- loop */
 
-  stage.start((dt) => {
-    if (!state.mix || !state.playing) return;
-    state.phase += Math.min(dt, 0.05) * 0.85;
-    updateSurface();
-    els.time.textContent = `φ ${state.phase.toFixed(2)} rad`;
-
-    lastRibbon += dt;
-    if (lastRibbon > 0.12) {
-      lastRibbon = 0;
-      updateRibbon();
-    }
-  });
+  // The phase clock is independent of the Three.js render loop. That keeps
+  // playback advancing in Plan map mode, where the WebGL canvas is hidden.
+  stage.start();
 
   refresh();
   updatePlayback();
 
   return () => {
+    if (phaseRaf) window.cancelAnimationFrame(phaseRaf);
+    mapCanvas.dispose();
     stage.dispose();
   };
 }

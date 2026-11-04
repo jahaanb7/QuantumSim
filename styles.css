@@ -277,6 +277,21 @@ input:focus-visible {
   animation: page-in 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
+/* The wave page reverses the edge: notes on the left, field on the right. */
+.page-wave {
+  grid-template-columns: var(--side) minmax(0, 1fr);
+}
+
+.page-wave .side {
+  grid-column: 1;
+  border-left: 0;
+  border-right: 1px solid var(--rule);
+}
+
+.page-wave .work {
+  grid-column: 2;
+}
+
 @keyframes page-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: none; }
@@ -856,6 +871,35 @@ input[type="range"]::-moz-range-thumb {
   touch-action: none;
 }
 
+.stage-2d {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.stage-2d[hidden] {
+  display: none;
+}
+
+.stage-2d canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.page[data-view="slice"] .stage-canvas,
+.page[data-view="profile"] .stage-canvas,
+.page[data-view="contour"] .stage-canvas {
+  visibility: hidden;
+}
+
+.page[data-view="slice"] .stage-hint,
+.page[data-view="profile"] .stage-hint,
+.page[data-view="contour"] .stage-hint {
+  display: none;
+}
+
 .stage-head {
   position: absolute;
   top: 34px;
@@ -948,6 +992,60 @@ input[type="range"]::-moz-range-thumb {
 
 .page-tunnel .stage-legend {
   bottom: 72px;
+}
+
+.page-tunnel .work {
+  grid-template-rows: minmax(0, 1fr) 138px auto;
+}
+
+.tunnel-plot {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 9px 34px 5px;
+  border-top: 1px solid var(--plate-rule);
+  background: var(--plate);
+}
+
+.tunnel-plot-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 18px;
+  padding-bottom: 3px;
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  color: #a0a294;
+}
+
+.tunnel-plot-head em {
+  margin-left: 5px;
+  font-style: normal;
+  color: #6f7163;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.tunnel-plot-head :last-child {
+  color: #74766a;
+  white-space: nowrap;
+}
+
+.tunnel-plot-canvas {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tunnel-plot-canvas canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .shell-chip {
@@ -1271,7 +1369,7 @@ input[type="range"]::-moz-range-thumb {
 .wave-playback .play-btn {
   width: 26px;
   height: 26px;
-  border-radius: 50%;
+  border-radius: 0;
   border: 1px solid #cfc8b6;
   display: grid;
   place-items: center;
@@ -1392,7 +1490,7 @@ input[type="range"]::-moz-range-thumb {
   height: 28px;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  border-radius: 0;
   border: 1px solid #cfc8b6;
   color: #eee8d8;
   transition: background 0.15s ease, color 0.15s ease;
@@ -1571,6 +1669,11 @@ input[type="range"]::-moz-range-thumb {
     padding: 0;
   }
 
+  .tunnel-plot {
+    padding-right: 30px;
+    padding-left: 30px;
+  }
+
   .stage-head {
     top: 30px;
     left: 30px;
@@ -1650,6 +1753,11 @@ input[type="range"]::-moz-range-thumb {
     padding: 0;
   }
 
+  .page-wave .work {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
   .stage {
     height: 58vh;
     min-height: 430px;
@@ -1661,6 +1769,24 @@ input[type="range"]::-moz-range-thumb {
     grid-row: auto;
     border-left: 0;
     border-top: 1px solid var(--rule);
+  }
+
+  .page-wave .side {
+    grid-column: 1;
+    grid-row: auto;
+    border-right: 0;
+    border-top: 1px solid var(--rule);
+  }
+
+  .page-tunnel .work {
+    grid-template-rows: auto 128px auto;
+  }
+
+  .page[data-view="slice"] .stage,
+  .page[data-view="profile"] .stage,
+  .page[data-view="contour"] .stage {
+    height: 62vh;
+    min-height: 460px;
   }
 
   .side-body {
@@ -1783,6 +1909,26 @@ input[type="range"]::-moz-range-thumb {
   .stage {
     height: 60vh;
     min-height: 360px;
+  }
+
+  .page[data-view="slice"] .stage,
+  .page[data-view="profile"] .stage,
+  .page[data-view="contour"] .stage {
+    height: 68vh;
+    min-height: 430px;
+  }
+
+  .tunnel-plot {
+    padding: 7px 20px 3px;
+  }
+
+  .tunnel-plot-head {
+    gap: 8px;
+    font-size: 7.1px;
+  }
+
+  .page-tunnel .work {
+    grid-template-rows: auto 108px auto;
   }
 
   .stage::after {
@@ -1935,6 +2081,14 @@ input[type="range"]::-moz-range-thumb {
   .stage {
     height: 56vh;
     min-height: 340px;
+  }
+
+  .page-tunnel .work {
+    grid-template-rows: auto 98px auto;
+  }
+
+  .tunnel-plot-head {
+    font-size: 6.9px;
   }
 
   .stage-title {

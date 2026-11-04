@@ -22,6 +22,17 @@ import {
   normalizeParams,
 } from "../physics/tdse.js";
 import { createSlider, debounce, clamp, percent } from "../ui.js";
+import {
+  createOverlayCanvas,
+  mono,
+  rule,
+  withAlpha,
+  PLATE_INK,
+  PLATE_MUTED,
+  PLATE_FAINT,
+  PLATE_RULE,
+  GOLD,
+} from "../plots.js";
 
 const FRAMES = 120;
 const PARTICLES = 9000;
@@ -173,6 +184,14 @@ export function mountConfigurationsPage(root) {
         </div>
       </div>
 
+      <div class="tunnel-plot" aria-label="Probability density as a function of position, synchronized with the simulation">
+        <div class="tunnel-plot-head">
+          <span>P(x,t) · |ψ|² <em>normalized</em></span>
+          <span data-plot-meta>t = 0.00 a.u. · frame 0</span>
+        </div>
+        <div class="tunnel-plot-canvas" data-trace-plot></div>
+      </div>
+
       <div class="ribbon ribbon-tunnel">
         <div class="metric lead">
           <span class="label">Transmitted</span>
@@ -222,6 +241,8 @@ export function mountConfigurationsPage(root) {
   const timeNow = page.querySelector(".time-now");
   const frameNow = page.querySelector(".frame-now");
   const regimeNote = page.querySelector("[data-regime-note]");
+  const plotHost = page.querySelector("[data-trace-plot]");
+  const plotMeta = page.querySelector("[data-plot-meta]");
 
   const statEls = {
     right: page.querySelector('[data-stat="right"]'),
@@ -260,6 +281,8 @@ export function mountConfigurationsPage(root) {
 
   const glowTexture = makeGlowTexture();
   const phaseGradient = makeGradient(PHASE_STOPS);
+  const tracePlot = createOverlayCanvas(plotHost, "trace-plot");
+  tracePlot.onResize(() => drawTrace());
 
   /* ---------------------------------------------------------------- 3D pieces */
 
@@ -297,7 +320,7 @@ export function mountConfigurationsPage(root) {
   const slabMaterial = new THREE.MeshBasicMaterial({
     color: 0xc2a052,
     transparent: true,
-    opacity: 0.07,
+    opacity: 0.14,
     depthWrite: false,
     side: THREE.DoubleSide,
   });
@@ -307,9 +330,9 @@ export function mountConfigurationsPage(root) {
 
   const edgeGeometry = new THREE.EdgesGeometry(slabGeometry);
   const edgeMaterial = new THREE.LineBasicMaterial({
-    color: 0xc2a052,
+    color: 0xd4b264,
     transparent: true,
-    opacity: 0.48,
+    opacity: 0.78,
   });
   const edges = new THREE.LineSegments(edgeGeometry, edgeMaterial);
   edges.renderOrder = 3;
@@ -447,6 +470,98 @@ export function mountConfigurationsPage(root) {
     colorAttr.needsUpdate = true;
   }
 
+  /* ---------------------------------------------------------------- trace */
+
+  function drawTrace() {
+    if (!plotHost.isConnected) return;
+    const size = tracePlot.resize();
+    if (size.width < 40 || size.height < 20) return;
+    const ctx = tracePlot.ctx;
+    ctx.clearRect(0, 0, size.width, size.height);
+
+    const padX = size.width < 600 ? 12 : 20;
+    const top = 4;
+    const bottom = size.height - 18;
+    const plot = {
+      x: padX,
+      y: top,
+      w: size.width - padX * 2,
+      h: Math.max(12, bottom - top),
+    };
+    const base = plot.y + plot.h;
+
+    if (!sim) {
+      rule(ctx, plot.x, base, plot.x + plot.w, base, PLATE_RULE);
+      mono(ctx, 6.5, PLATE_FAINT);
+      ctx.textAlign = "left";
+      ctx.fillText("waiting for the solver", plot.x, base + 13);
+      return;
+    }
+
+    const xMin = sim.display.min;
+    const xMax = sim.display.max;
+    const density = sim.frames[frame];
+    if (!density) return;
+    const indices = sim.display.indices;
+    const peak = sim.peak > 0 ? sim.peak : 1;
+    const toX = (x) => plot.x + ((x - xMin) / (xMax - xMin)) * plot.w;
+    const toY = (value) => base - Math.pow(clamp(value / peak, 0, 1), 0.55) * plot.h;
+
+    // The barrier is drawn first, so the probability trace remains visible
+    // inside it. Both come from the same solved state.
+    const barrierLeft = toX(-params.width / 2);
+    const barrierRight = toX(params.width / 2);
+    ctx.fillStyle = withAlpha(GOLD, 0.11);
+    ctx.fillRect(barrierLeft, plot.y, Math.max(1, barrierRight - barrierLeft), plot.h);
+
+    ctx.beginPath();
+    ctx.moveTo(plot.x, base);
+    for (let j = 0; j < indices.length; j++) {
+      const x = sim.x[indices[j]];
+      ctx.lineTo(toX(x), toY(density[indices[j]]));
+    }
+    ctx.lineTo(plot.x + plot.w, base);
+    ctx.closePath();
+    ctx.fillStyle = withAlpha(PLATE_INK, 0.12);
+    ctx.fill();
+
+    ctx.beginPath();
+    for (let j = 0; j < indices.length; j++) {
+      const x = sim.x[indices[j]];
+      const px = toX(x);
+      const py = toY(density[indices[j]]);
+      if (j === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.strokeStyle = PLATE_INK;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    rule(ctx, plot.x, base, plot.x + plot.w, base, PLATE_RULE);
+    rule(ctx, barrierLeft, plot.y, barrierLeft, base, withAlpha(GOLD, 0.48));
+    rule(ctx, barrierRight, plot.y, barrierRight, base, withAlpha(GOLD, 0.48));
+    rule(ctx, plot.x, plot.y, plot.x, base, PLATE_RULE);
+
+    mono(ctx, 7.5, PLATE_FAINT);
+    ctx.textAlign = "center";
+    [-60, -30, 0, 30, 60].forEach((value) => {
+      const x = toX(value);
+      if (x < plot.x || x > plot.x + plot.w) return;
+      rule(ctx, x, base, x, base + 3, PLATE_RULE);
+      ctx.fillText(value === 0 ? "0" : String(value).replace("-", "−"), x, base + 14);
+    });
+    ctx.textAlign = "left";
+    ctx.fillStyle = GOLD;
+    ctx.fillText("V₀", Math.min(barrierLeft + 4, plot.x + plot.w - 18), plot.y + 10);
+
+    mono(ctx, 7.5, PLATE_MUTED);
+    ctx.textAlign = "left";
+    ctx.fillText("0", plot.x, plot.y + 10);
+    ctx.textAlign = "right";
+    ctx.fillStyle = PLATE_FAINT;
+    ctx.fillText("normalized · x / a.u.", plot.x + plot.w, plot.y + 10);
+  }
+
   /* ---------------------------------------------------------------- readouts */
 
   function updateStaticReadouts() {
@@ -483,8 +598,10 @@ export function mountConfigurationsPage(root) {
 
     timeNow.textContent = `t = ${t.toFixed(2)} a.u.`;
     frameNow.textContent = `${frame} / ${total}`;
+    plotMeta.textContent = `t = ${t.toFixed(2)} a.u. · frame ${frame}`;
     timeline.value = String(frame);
     timeline.style.setProperty("--fill", `${(frame / total) * 100}%`);
+    drawTrace();
     page.dataset.frame = String(frame);
     page.dataset.transmission = probability.right.toFixed(4);
   }
@@ -839,6 +956,7 @@ export function mountConfigurationsPage(root) {
     disposed = true;
     runDebounced.cancel();
     thumbnailTimers.forEach((timer) => window.clearTimeout(timer));
+    tracePlot.dispose();
     stage.dispose();
     glowTexture.dispose();
   };

@@ -1,14 +1,17 @@
 # QuantumSim
 
-An interactive, browser-based quantum physics lab. QuantumSim visualises two
-different sides of the Schrödinger equation in 3D:
+An interactive, browser-based quantum physics lab. QuantumSim hosts three
+connected ways to inspect the Schrödinger equation:
 
-1. **Atomic probability clouds** — Monte-Carlo samples of hydrogen-like
-   orbitals for hydrogen, helium, lithium and carbon, alongside their atomic
-   properties.
-2. **Quantum tunneling** — a live, time-dependent wave-packet scattering
-   simulation against a rectangular potential barrier, with presets, playback
-   and quantitative readouts.
+1. **Orbital builder** — a hydrogen-like atomic orbital laboratory with a
+   Monte-Carlo probability cloud, a signed cross-section and a radial
+   probability instrument, plus an indexed atom library.
+2. **Wavefunction** — a two-dimensional infinite well explored as a signed
+   surface, a probability density and a synchronized plan map, with a coherent
+   superposition and phase playback.
+3. **Quantum tunneling** — a live, time-dependent wave-packet scattering
+   experiment against a rectangular barrier, with presets, playback and a
+   synchronized probability-density trace.
 
 Everything runs client-side. There is no build step, no server-side code and no
 runtime dependency other than a local copy of [Three.js](https://threejs.org/).
@@ -23,7 +26,8 @@ runtime dependency other than a local copy of [Three.js](https://threejs.org/).
 - [Tour](#tour)
 - [Physics and mathematics](#physics-and-mathematics)
   - [Atomic probability clouds](#1-atomic-probability-clouds)
-  - [Quantum tunneling and scattering](#2-quantum-tunneling-and-scattering)
+  - [The two-dimensional box](#2-the-two-dimensional-box)
+  - [Quantum tunneling and scattering](#3-quantum-tunneling-and-scattering)
 - [Using the app](#using-the-app)
 - [Sanity check](#sanity-check)
 - [Development verification](#development-verification)
@@ -48,11 +52,12 @@ opened as a `file://` URL, because it uses ES modules and an import map.
 
 | Route | Page |
 | --- | --- |
-| `#/elements` | Atomic probability clouds and element properties |
-| `#/configurations` | Wave-packet tunneling and scattering |
+| `#/elements` | Orbital builder, radial instruments and atom library |
+| `#/wavefunction` | Two-dimensional box, signed surface and plan map |
+| `#/configurations` | Wave-packet tunneling, scattering and density trace |
 
-The bare URL is normalised to `#/elements`. Both pages are reachable from the
-top navigation bar. Drag to orbit the scene, scroll or pinch to zoom.
+The bare URL is normalised to `#/elements`. All three pages are reachable from
+the top navigation bar. Drag to orbit a 3D scene, scroll or pinch to zoom.
 
 There is nothing to install and nothing to compile. Three.js r180 is vendored
 in `vendor/` so the lab also works offline.
@@ -61,35 +66,64 @@ in `vendor/` so the lab also works offline.
 
 ## Tour
 
-### Chemical elements
+### Orbital builder
 
-The left rail selects one of four atoms. The 3D stage shows its occupied
-orbitals as glowing point clouds; the right rail shows atomic properties and
-rendering controls.
+The desktop workspace is a dark instrument plate on the left and a
+context-sensitive control rail on the right. The **Builder / Atoms** tabs switch
+between a free quantum-number laboratory and an indexed library of nine atoms.
 
-- Click an element to refit the camera and load its properties.
-- Toggle individual orbitals (1s, 2s, 2p_x, 2p_z) from the stage legend.
-- Adjust **sample points**, **screening Z_eff** and **cloud brightness**.
-- Turn auto-orbit on or off.
+- **n**, **l** and **m** select the shell, angular momentum and orientation. The
+  builder caps invalid combinations (for example, `l ≤ n − 1`) and explains the
+  change in the stage copy and measurement ribbon.
+- **View** offers three instruments over the same orbital model:
+  - **Cloud** — the Monte-Carlo point cloud, with density represented by dot
+    concentration and signed phase tint in the custom builder.
+  - **Slice** — a signed cross-section of ψ through an automatically chosen
+    informative plane. Cream is positive, rust is negative, and dark bands are
+    nodes.
+  - **Radial** — `P(r) = r²|R|²`, normalized to its peak, with the most-probable
+    radius, mean radius and radial-node markers.
+- The effective charge `Z_eff` is adjustable in the custom builder. The atom
+  library uses its own tabulated effective charges.
+- Sample count, auto-orbit, phase tint and element/orbital visibility remain
+  available as instrument controls.
 
-The colour of each cloud identifies its orbital; the **density of dots** is the
-probability density. More sample points produce a smoother estimate, not more
-electrons.
+The colour of a cloud identifies its orbital; its **density of dots** estimates
+`|ψ|²`. More sample points produce a smoother estimate, not more electrons.
 
-### Quantum configurations
+### Wavefunction
+
+The layout deliberately reverses the builder: explanatory material and
+controls occupy the left rail, while the dark field sits on the right.
+
+- **nx** and **ny** set the two box quantum numbers from 1 to 4.
+- **Display** switches among the signed surface (`ψ`), probability density
+  (`|ψ|²`) and a **Plan map** contour view. The map is generated from the same
+  analytic state as the surface, not a separate illustrative dataset.
+- Positive and negative lobes retain the cream/rust sign mapping; nodal lines
+  are detected from sign crossings in the sampled field.
+- **Superpose ground state** creates a coherent superposition with the ground
+  state. The phase playback advances the relative phase; the state is normalized
+  before it is displayed.
+- **Amplitude** controls surface height only. It is not a probability
+  amplitude and is hidden in the plan-map view.
+
+### Quantum tunneling
 
 A Gaussian wave packet starts on the left and scatters from a rectangular
-barrier. The 3D cloud is coloured by the phase of ψ, and the amber slab marks
-the barrier. A playback bar scrubs through the encounter.
+gold barrier. The 3D cloud is coloured by the phase of ψ, and a synchronized
+`P(x,t) = |ψ(x,t)|²` trace sits below the plate.
 
 - Six presets load physically distinct configurations.
 - Each preset thumbnail is a real position–time (`x–t`) density map produced by
   the same solver, and its label shows the transmission measured in that run.
 - Sliders control energy, barrier height, barrier width, packet width and start
   position.
-- The right rail reports the left/inside/right probability split, current and
-  final transmission, analytic plane-wave transmission, norm, regime, the
-  energy-to-barrier ratio, and packet parameters.
+- The 2D trace uses the same saved solver frames, barrier geometry and timeline
+  as the 3D cloud. It is not independently approximated.
+- The measurement ribbon reports the left/inside/right probability split,
+  instantaneous transmission, final packet transmission, analytic plane-wave
+  transmission, norm and regime.
 - Play, pause, replay and scrub are supported.
 
 ---
@@ -98,7 +132,7 @@ the barrier. A playback bar scrubs through the encounter.
 
 ### Units and conventions
 
-Both simulations use **atomic units**:
+All simulations use **atomic units**:
 
 | Quantity | Unit | Value |
 | --- | --- | --- |
@@ -185,7 +219,7 @@ approximate this with a single effective charge
 Z_eff = Z − S
 ```
 
-where `S` is the screening constant. The app uses the following tabulated
+where `S` is the screening constant. Examples from the atom library's tabulated
 effective charges:
 
 | Atom | Orbital | `Z_eff` | Occupancy shown |
@@ -204,17 +238,19 @@ configuration is a many-electron state, and the app shows two orthogonal real
 p orbitals with one electron each so that both directional lobes are visible.
 The total 2p occupancy is two electrons.
 
-The **Screening Z_eff** slider multiplies these tabulated values by `0.7–1.5`.
-It is a visualisation control for exploring how orbital size scales with
-screening; it does not re-derive the electronic structure. Because
-`r ~ 1/Z_eff`, increasing the charge contracts the cloud and decreasing it
-expands the cloud.
+The custom builder's **Effective charge** control sets `Z_eff` directly from
+`1.0` to `12.0`. The atom library uses its own tabulated values. This is a
+visualisation control for exploring how orbital size scales with screening; it
+does not re-derive the electronic structure. Because `r ~ 1/Z_eff`, increasing
+the charge contracts the cloud and decreasing it expands the cloud.
 
 ### Monte-Carlo sampling
 
-The app does not draw a smooth isosurface. It samples the probability
-distribution directly, using `40,000` dots per orbital by default (adjustable
-from `8,000` to `80,000`). Each dot is one possible electron position.
+The Cloud view samples the probability distribution directly, using `30,000`
+dots per state by default (adjustable from `10,000` to `60,000`). Each dot is
+one possible electron position. The signed Slice and Radial views are analytic
+instruments over the same orbital functions rather than additional random
+samples.
 
 **Radial sampling.** The cumulative radial probability
 
@@ -222,14 +258,13 @@ from `8,000` to `80,000`). Each dot is one possible electron position.
 F(r) = ∫₀^r r'² |R_nl(r')|² dr'
 ```
 
-is computed numerically on 4,096 radial bins, out to `15/Z_eff` for `n = 1` and
-`60/Z_eff` for `n = 2`. A uniform random number `u ∈ [0, 1)` is inverted through
-this CDF with a binary search, giving a sample whose distribution follows
-`P_nl(r)`.
+is computed numerically on a dense radial grid extending far into the state's
+tail. A uniform random number `u ∈ [0, 1)` is inverted through this CDF with a
+binary search, giving a sample whose distribution follows `P_nl(r)`.
 
 **Angular sampling.** For s orbitals the direction is sampled uniformly on the
-sphere. For a p orbital, a rejection step accepts directions with probability
-`cos²θ` relative to the chosen axis, which reproduces `|Y|²`.
+sphere. For `l ≥ 1`, rejection sampling accepts directions in proportion to the
+same real angular functions used by the Slice view, reproducing `|Y|²`.
 
 The 98th-percentile radius is used only for framing and point sizing; samples
 themselves are drawn from the full CDF up to `rMax`, which is chosen well into
@@ -240,8 +275,10 @@ decorative glow.
 
 - Dot density is `|ψ|²`. The brightest regions are the most probable electron
   positions, not regions of higher charge or temperature.
-- The 2s cloud has a spherical radial node at `r = 2/Z_eff`, where `R₂₀ = 0`;
-  the 2p cloud has an angular node (the plane between its lobes).
+- For example, the 2s cloud has a spherical radial node at `r = 2/Z_eff`, where
+  `R₂₀ = 0`; a 2p cloud has an angular node (the plane between its lobes).
+  Higher `l` states expose their own radial and angular node structure in the
+  Slice and Radial views.
 - Each orbital is sampled independently and with the same point count, so
   cloud brightness is not weighted by occupancy. The legend chips show the
   electron counts.
@@ -266,7 +303,46 @@ The orbital model is deliberately simple:
 
 ---
 
-## 2. Quantum tunneling and scattering
+## 2. The two-dimensional box
+
+The Wavefunction page models a particle confined to a square well with
+impenetrable walls. In the app the box side is `L = 1` and the origin is at the
+lower-left corner, so `0 ≤ x, y ≤ L`. The normalized stationary states are
+
+```text
+ψ_nx,ny(x,y) = (2/L) sin(nxπx/L) sin(nyπy/L)
+```
+
+and their energies are
+
+```text
+E_nx,ny = π² ℏ² (nx² + ny²) / (2 m L²).
+```
+
+In atomic units (`m = ℏ = 1`, `L = 1`) the measurement ribbon expresses this as
+`E/E₁₁ = (nx² + ny²)/2`. Degenerate states have the same sum `nx² + ny²`.
+
+Each quantum number adds nodes in its own direction: `nx − 1` vertical nodal
+lines and `ny − 1` horizontal lines, for `nx + ny − 2` nodal lines in total.
+The signed surface shows `ψ`; the density view shows the nonnegative `|ψ|²`,
+whose zero set is exactly those nodal lines. The 3D surface is a height map of a
+2D field, not a claim that the physical box is three-dimensional.
+
+The superposition switch combines the selected state with the ground state as
+
+```text
+ψ(x,y,t) = [cos φ(t) ψ_nx,ny + ψ₁,₁] / √(1 + cos² φ(t)).
+```
+
+The denominator normalizes the coherent state for orthonormal basis functions.
+The app advances the relative phase `φ` for display; it does not integrate a
+time-dependent potential. Surface height is scaled by the Amplitude control
+and is not a probability axis. The measurement ribbon reports the box energy in
+units of `E₁₁`, the number of nodal lines and the peak displayed density height.
+
+---
+
+## 3. Quantum tunneling and scattering
 
 ### The time-dependent Schrödinger equation
 
@@ -580,27 +656,52 @@ inside these ranges. The active preset highlight follows the current parameter
 set, so moving a slider can select a preset or clear the highlight. Changing a
 slider re-solves the TDSE and restarts playback.
 
-### Element controls
+### Orbital builder controls
 
-| Control | Range | Default |
+| Control | Range / values | Default |
 | --- | --- | --- |
-| Sample points | 8,000 – 80,000 per orbital | 40,000 |
-| Screening `Z_eff` scale | 0.7 – 1.5 × | 1.0 |
-| Cloud brightness | 0.1 – 0.9 | 0.5 |
+| Mode | Builder / Atoms | Builder |
+| View | Cloud / Slice / Radial | Cloud |
+| Principal `n` | 1 – 5 | 3 |
+| Angular `l` | 0 – 3, capped at `n − 1` | 2 |
+| Magnetic `m` | valid values for the selected `l` | 0 |
+| Sample points | 10,000 – 60,000 per state | 30,000 |
+| Effective charge | `Z_eff` 1.0 – 12.0 | 1.0 |
 | Auto-orbit | on / off | on |
+| Phase tint | on / off | on |
+
+The view control applies to the custom builder. The atom library keeps its own
+tabulated effective charges and orbital visibility toggles.
+
+### Wavefunction controls
+
+| Control | Range / values | Default |
+| --- | --- | --- |
+| `nx`, `ny` | 1 – 4 | 2, 1 |
+| Display | signed ψ / |ψ|² / Plan map | signed ψ |
+| Superpose ground state | off / on | off |
+| Amplitude | 0.35 – 1.25 | 0.80 |
+| Relative phase | animated during superposition playback | 0 |
+
+Amplitude changes the 3D surface height only. It is hidden in Plan map mode.
+The Plan map and the 3D surface are always two presentations of the same
+analytic state.
 
 ### Playback and readouts
 
-The timeline is a frame scrubber over 121 saved states. Play/pause and replay
-do not recompute the simulation. The right rail shows:
+The tunneling timeline is a frame scrubber over 121 saved states. Play/pause and
+replay do not recompute the simulation. The synchronized 2D trace redraws from
+that same frame. The measurement ribbon shows:
 
 - the instantaneous left/inside/right probability split;
 - the current transmitted percentage;
 - the final packet transmission for the run;
 - the analytic plane-wave transmission at the central energy;
-- the norm;
-- the current regime (deep tunneling, threshold, or over the barrier);
-- `E/V₀`, `k₀`, de Broglie wavelength, packet width and grid size.
+- the norm and the current regime;
+- `E/V₀`, barrier width and packet parameters.
+
+The wavefunction ribbon reports the state label, energy in units of `E₁₁`,
+node count, peak displayed density height and the fixed/beat mode.
 
 ---
 
@@ -652,28 +753,29 @@ console.log('98% radius (a0):', s.extent.toFixed(2), 'samples:', s.positions.len
 "
 ```
 
-Expected: a 98% radius of about `9.00 a₀` from 20,000 samples. The radius
+Expected: a 98% radius of roughly `9.3 a₀` from 20,000 samples. The radius
 scales as `1/Z_eff`, so increasing the effective charge contracts the cloud.
 
 ---
 
 ## Development verification
 
-The app was checked in Chromium with WebGL2:
+The current pass was checked in Chromium with WebGL2:
 
-- rendered point clouds for H, Li and C, and the tunneling cloud, were pixel-
-  verified rather than assumed from a successful render call;
-- Carbon at 80,000 points per orbital (320,000 points total) rendered at
-  approximately 60 fps on the test machine;
-- changing `Z_eff` from 1.5 to 0.7 changed the fraction of lit pixels in a fixed
-  central region from 21% to 50%, confirming that the parameter changes the
-  cloud geometry;
-- changing sample points from 8,000 to 80,000 changed that coverage from 9% to
-  44%, confirming that the density estimate changes;
-- extreme runs remained normalised to within `4 × 10⁻⁴` (worst observed norm
-  `0.9996`), with no console errors;
-- orbital toggles, preset switching, playback, scrubbing and randomize were
-  exercised in the browser.
+- the orbital builder rendered its Cloud, Slice and Radial views; the 2D
+  canvases acquired real backing-store dimensions after switching away from the
+  3D cloud;
+- the wavefunction route rendered the signed surface and the Plan map; the map
+  canvas measured correctly on first display and its mode-specific explanatory
+  note updated with the view;
+- the tunneling route rendered the 3D state and its synchronized density trace;
+  pausing and scrubbing to frame 118 updated the frame label, time, trace,
+  transmission and split readouts from the same solver frame;
+- pages were inspected at 1280 × 800, 1000 × 800, 390 × 844 and 375 × 812; none
+  produced horizontal document overflow, and the 375 px header moved the
+  navigation to its own row;
+- browser console output was clean on the reviewed routes;
+- `node --check` passed for all edited modules and `git diff --check` passed.
 
 There is currently **no automated test suite**; the Node commands above are the
 intended physics smoke tests. The browser checks were manual.
@@ -688,10 +790,12 @@ styles.css                    visual system and responsive layout
 src/app.js                    hash router and page lifecycle
 src/stage.js                  shared Three.js renderer, camera, orbit controls
 src/ui.js                     sliders, switches and DOM helpers
-src/views/elements.js         chemical-elements page
-src/views/configurations.js   tunneling page, playback and statistics
+src/views/elements.js         orbital builder, cross-sections and radial instruments
+src/views/wavefunction.js     two-dimensional box, surface, density and plan map
+src/views/configurations.js   tunneling page, trace, playback and statistics
+src/plots.js                  shared high-DPI canvas sizing and plot typography
 src/data/elements.js          element data and orbital definitions
-src/physics/orbitals.js       radial CDFs and orbital point-cloud sampling
+src/physics/orbitals.js       radial functions, summaries, nodes and cloud sampling
 src/physics/tdse.js           split-step TDSE solver, analytic T, limits
 src/physics/fft.js            radix-2 complex FFT
 vendor/                       Three.js r180, vendored for offline use
@@ -714,9 +818,16 @@ QuantumSim is a teaching and exploration tool, not a research solver.
 
 - The atomic clouds use a hydrogen-like, one-electron model with Slater
   screening. They reproduce orbital shapes and trends, not quantitative
-  many-electron densities or energies.
+  many-electron densities or energies. The builder offers the point cloud, a
+  signed plane slice and a radial profile; it does not yet include a full 3D
+  isosurface mode.
+- The wavefunction page uses an analytic infinite square well. Its superposition
+  is a coherent display state with a manually advanced relative phase, not a
+  time integration of a driven or interacting potential; surface height is a
+  display scale.
 - The tunneling simulation is one-dimensional and single-particle. It omits
-  spin, magnetic fields, inelastic channels, and photon emission.
+  spin, magnetic fields, inelastic channels, and photon emission. The 2D trace
+  is a plot of the same saved 1D density, not an independent simulation.
 - The potential is an ideal rectangular barrier. Real barriers are smooth,
   finite, and often time-dependent; those require transfer-matrix, WKB, or
   numerical scattering methods.

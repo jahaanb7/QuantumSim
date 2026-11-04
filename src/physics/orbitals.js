@@ -298,6 +298,41 @@ export function sampleCloud({ n, l, m = 0, zEff = 1, count = 40000, seed = 1 }) 
   };
 }
 
+/** Summary radial quantities without drawing a Monte-Carlo sample. */
+export function radialSummary(n, l, zEff) {
+  const radial = buildRadial(n, l, zEff);
+  return {
+    mean: radial.mean,
+    mostProbable: radial.mostProbable,
+    extent: radial.extent,
+    extent95: radial.extent95,
+  };
+}
+
+/**
+ * Radii where R_nl changes sign, i.e. the radial nodes. These are found on
+ * the same radial grid used for sampling so the plot and the cloud agree.
+ */
+export function radialZeros(n, l, zEff, steps = 900) {
+  const radial = buildRadial(n, l, zEff);
+  const radius = radial.extent * 1.16;
+  const zeros = [];
+  let previous = radialFunction(n, l, zEff, 0);
+  for (let i = 1; i <= steps; i++) {
+    const r = (i / steps) * radius;
+    const value = radialFunction(n, l, zEff, r);
+    if (previous === 0) {
+      zeros.push(((i - 1) / steps) * radius);
+    } else if (value === 0 || Math.sign(previous) !== Math.sign(value)) {
+      const r0 = ((i - 1) / steps) * radius;
+      const span = r - r0;
+      zeros.push(r0 + (span * Math.abs(previous)) / (Math.abs(previous) + Math.abs(value)));
+    }
+    previous = value;
+  }
+  return zeros;
+}
+
 /** Radial probability density P(r) = r² R², on a small grid for charts. */
 export function radialProfile(n, l, zEff, bins = 120) {
   const radial = buildRadial(n, l, zEff);
