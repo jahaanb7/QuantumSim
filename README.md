@@ -13,6 +13,10 @@ different sides of the Schrödinger equation in 3D:
 Everything runs client-side. There is no build step, no server-side code and no
 runtime dependency other than a local copy of [Three.js](https://threejs.org/).
 
+> **Deep dive:** [The QuantumSim Field Guide](docs/EXPLAINER.md) derives the
+> physics, explains the numerical methods, and walks through the code with
+> worked examples and generated figures.
+
 ## Contents
 
 - [Quick start](#quick-start)

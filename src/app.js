@@ -5,7 +5,7 @@ import { mountConfigurationsPage } from "./views/configurations.js";
 const ROUTES = {
   elements: {
     mount: mountElementsPage,
-    title: "Orbitals — QuantumSim",
+    title: "Builder — QuantumSim",
   },
   wavefunction: {
     mount: mountWavefunctionPage,

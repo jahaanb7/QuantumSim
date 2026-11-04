@@ -534,6 +534,33 @@ input:focus-visible {
   color: var(--muted);
 }
 
+.q-block {
+  margin: 10px 0 12px;
+}
+
+.q-block .builder-row {
+  margin: 0 0 3px;
+}
+
+.q-note {
+  margin: 0 0 0 28px;
+  font-size: 8.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.q-note .q-live {
+  display: block;
+  margin-bottom: 1px;
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--ink-soft);
+}
+
+.q-note .q-effect {
+  display: block;
+}
+
 .seg {
   display: flex;
   flex-wrap: wrap;
