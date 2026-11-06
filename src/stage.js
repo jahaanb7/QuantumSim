@@ -10,6 +10,7 @@ export function createStage(container, options = {}) {
   const {
     fov = 40,
     cameraPosition = [0, 0, 100],
+    cameraUp = [0, 1, 0],
     target = [0, 0, 0],
     minDistance = 30,
     maxDistance = 240,
@@ -37,6 +38,7 @@ export function createStage(container, options = {}) {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 3000);
   camera.position.set(...cameraPosition);
+  camera.up.set(...cameraUp);
 
   const controls = new OrbitControls(camera, canvas);
   controls.target.set(...target);
