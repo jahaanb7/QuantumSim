@@ -29,7 +29,7 @@ npm test
 npm run build
 ```
 
-Deploy `dist/` to any static host. The build includes only the site, fonts, vendor files, and license notices. There are no API keys, accounts, or server dependencies.
+Deploy `dist/` to any static host. The build includes the site, locally stored historical media, fonts, vendor files, and license notices. There are no API keys, accounts, or server dependencies.
 
 ## Lab controls
 
@@ -67,7 +67,8 @@ Additional physics references are linked in the site and explainer. The guide pr
 | --- | --- |
 | `index.html`, `styles.css` | Responsive editorial guide and lab structure |
 | `src/lessons.js` | History lessons, explanatory diagrams, and equation lessons |
-| `src/app.js` | Accessible lesson tabs, chapter navigation, and hero orbital |
+| `src/app.js` | Accessible equation tabs, chapter navigation, and hero orbital |
+| `src/history.js`, `src/media.js` | Continuous timeline, scroll tracking, Motion reveals, and media credits |
 | `src/lab.js` | Atomic controls, metrics, and renderer integration |
 | `src/physics/orbitals.js` | Coulomb functions and seeded sampling |
 | `src/stage.js` | Three.js stage, axes, resources, and disposal |

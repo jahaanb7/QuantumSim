@@ -1,10 +1,11 @@
+import { mountHistory } from './history.js';
 import { history, equations } from './lessons.js';
 import { sampleCloud } from './physics/orbitals.js';
 import { mountOrbitalLab } from './lab.js';
 
 const $ = selector => document.querySelector(selector);
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let currentHistory = 0, currentEquation = 0;
+let currentEquation = 0;
 
 function setupTabs(container, items, label, render) {
   container.innerHTML = items.map((item,index)=>`<button id="${label}-tab-${index}" type="button" role="tab" aria-controls="${label}-panel" aria-selected="${index===0}" tabindex="${index===0?0:-1}" data-index="${index}">${label==='history' ? `<span>${item.date}</span><strong>${item.who}</strong>` : `<span>0${index+1}</span><strong>${item.name}</strong><small>${item.short}</small>`}</button>`).join('');
@@ -25,21 +26,16 @@ function selectTab(container,index,panel,label){
   panel.setAttribute('aria-labelledby',`${label}-tab-${index}`);
 }
 const pagination=(index,total,kind)=>`<div class="lesson-pagination"><button type="button" data-page="-1" ${index===0?'disabled':''}>← Previous</button><span>${String(index+1).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span>${index===total-1?`<a href="#${kind==='history'?'equation':'atom'}">${kind==='history'?'Build the equation':'Open the lab'} ↗</a>`:'<button type="button" data-page="1">Next idea →</button>'}</div>`;
-function showHistory(index){
-  currentHistory=index;const lesson=history[index],panel=$('#history-panel');
-  selectTab($('#timeline'),index,panel,'history');
-  panel.innerHTML=`<p class="eyebrow">${lesson.date} / ${lesson.tag}</p><h3>${lesson.title}</h3><p>${lesson.body}</p><figure class="lesson-illustration">${lesson.diagram}</figure><p class="evidence"><strong>The idea to keep.</strong> ${lesson.evidence}</p><div class="lesson-connection"><span aria-hidden="true">↳</span><span>${lesson.connection}</span></div>${pagination(index,history.length,'history')}`;
-}
 function showEquation(index){
   currentEquation=index;const lesson=equations[index],panel=$('#equation-panel');
   selectTab($('#equation-steps'),index,panel,'equation');
   panel.innerHTML=`<h3>${lesson.title}</h3><div class="formula" aria-label="${lesson.formula.replace(/<[^>]*>/g,' ').replaceAll('&nbsp;',' ')}">${lesson.formula}</div>${lesson.diagram??''}<p>${lesson.body}</p>${lesson.mini?`<div class="mini-derivation">${lesson.mini}</div>`:''}<div class="equation-takeaway">${lesson.takeaway}</div><details><summary>Go a little deeper</summary><p>${lesson.detail}</p></details>${pagination(index,equations.length,'equation')}`;
 }
-setupTabs($('#timeline'),history,'history',showHistory);
+const disposeHistory = mountHistory(history, reducedMotion);
 setupTabs($('#equation-steps'),equations,'equation',showEquation);
-showHistory(0);showEquation(0);
+showEquation(0);
 function handlePagination(panel,handler,current){panel.addEventListener('click',event=>{const button=event.target.closest('[data-page]');if(button){handler(current()+Number(button.dataset.page));panel.focus({preventScroll:true});}});}
-handlePagination($('#history-panel'),showHistory,()=>currentHistory);
+
 handlePagination($('#equation-panel'),showEquation,()=>currentEquation);
 
 // Old shared deep links lead to the single, current orbital lab.
@@ -72,4 +68,4 @@ function drawHero(){
 }
 const heroResize=new ResizeObserver(drawHero);heroResize.observe(canvas);
 const disposeLab=mountOrbitalLab({reducedMotion});
-window.addEventListener('pagehide',()=>{heroResize.disconnect();chapterObserver.disconnect();disposeLab();},{once:true});
+window.addEventListener('pagehide',()=>{disposeHistory();heroResize.disconnect();chapterObserver.disconnect();disposeLab();},{once:true});
