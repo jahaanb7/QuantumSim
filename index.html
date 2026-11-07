@@ -1,84 +1,91 @@
-<!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#111111" />
-  <script>
-    // Apply the stored theme before the first paint to avoid a flash.
-    try {
-      var stored = localStorage.getItem("quantumsim-theme");
-      document.documentElement.dataset.theme = stored === "light" ? "light" : "dark";
-    } catch (error) {
-      document.documentElement.dataset.theme = "dark";
-    }
-  </script>
-  <meta name="description" content="An interactive quantum atlas: build hydrogen-like orbitals, explore a 3D wavefunction surface and probability density, run tunneling, and read the field guide." />
-  <title>QuantumSim — a small quantum atlas</title>
-  <link rel="preload" href="fonts/instrument-serif-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="preload" href="fonts/ibm-plex-mono-400.woff2" as="font" type="font/woff2" crossorigin />
-  <link rel="stylesheet" href="styles.css" />
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "./vendor/three.module.js",
-        "three/addons/": "./vendor/addons/"
-      }
-    }
-  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f3f1e9">
+  <meta name="description" content="From the mystery of light to the shape of an atom. An illustrated quantum learning guide by Jahaan Bhavsar, with an interactive 3D atomic orbital lab.">
+  <title>QuantumSim — From light to the atom</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231e4d48'/%3E%3Ctext x='32' y='46' text-anchor='middle' font-family='serif' font-size='48' fill='%23f3f1e9'%3Eψ%3C/text%3E%3C/svg%3E">
+  <link rel="preload" href="fonts/instrument-serif-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/ibm-plex-sans-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js","three/addons/":"./vendor/addons/"}}</script>
 </head>
 <body>
-  <div class="app">
-    <header class="masthead">
-      <a class="wordmark" href="#/elements" aria-label="QuantumSim home">
-        <span class="wordmark-mark" aria-hidden="true">Ψ</span>
-        <span class="wordmark-text">QuantumSim</span>
-        <span class="wordmark-tag">a small quantum atlas</span>
-      </a>
-
-      <nav class="nav" aria-label="Sections">
-        <a class="nav-link" data-route="elements" href="#/elements">
-          <span class="nav-num">01</span> Builder
-        </a>
-        <a class="nav-link" data-route="wavefunction" href="#/wavefunction">
-          <span class="nav-num">02</span> Density
-        </a>
-        <a class="nav-link" data-route="configurations" href="#/configurations">
-          <span class="nav-num">03</span> Tunneling
-        </a>
-        <a class="nav-link" data-route="learn" href="#/learn">
-          <span class="nav-num">04</span> Guide
-        </a>
-      </nav>
-
-      <div class="masthead-tools">
-        <div class="masthead-meta">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span>local compute · no server</span>
-        </div>
-        <button
-          class="theme-toggle"
-          type="button"
-          role="switch"
-          aria-checked="true"
-          aria-label="Switch to light theme"
-          data-theme-toggle
-        >
-          <span class="theme-toggle-track" aria-hidden="true">
-            <span class="theme-toggle-thumb"></span>
-          </span>
-          <span class="theme-toggle-label" data-theme-label>Dark</span>
-        </button>
+  <a class="skip-link" href="#history">Skip to the learning guide</a>
+  <header class="masthead">
+    <a class="wordmark" href="#top" aria-label="QuantumSim home"><span class="brand-symbol">ψ</span> QuantumSim<span class="brand-caption">A FIELD GUIDE TO THE ATOM</span></a>
+    <nav aria-label="Chapters">
+      <a href="#history"><span>01</span> The history</a>
+      <a href="#equation"><span>02</span> The equation</a>
+      <a href="#atom"><span>03</span> The atom <span aria-hidden="true">↗</span></a>
+    </nav>
+    <div class="reading-progress" aria-hidden="true"><div id="progress"></div></div>
+  </header>
+  <main id="top">
+    <section class="hero section-wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow"><span class="dot"></span> AN INTERACTIVE LEARNING JOURNEY</p>
+        <h1 id="hero-title">It started<br>with <em>light.</em><br>It changed<br>the <em>atom.</em></h1>
+        <p class="hero-description">How a centuries-old question became an equation—and how that equation gives an atom its shape.</p>
+        <div class="hero-actions"><a class="button primary" href="#history">Follow the story <span>↓</span></a><a class="text-link" href="#atom">Go straight to the lab ↗</a></div>
+        <p class="byline">WRITTEN & BUILT BY <a href="https://github.com/jahaanb7" target="_blank" rel="noopener">JAHAAN BHAVSAR</a></p>
       </div>
-    </header>
-
-    <main id="app" class="app-main"></main>
-  </div>
-
-  <noscript>
-    <div class="noscript">QuantumSim needs JavaScript to run its simulations.</div>
-  </noscript>
+      <figure class="hero-figure">
+        <div class="figure-cross cross-tl" aria-hidden="true">+</div><div class="figure-cross cross-br" aria-hidden="true">+</div>
+        <span class="figure-code">FIG. 01 / THE DESTINATION</span>
+        <canvas id="hero-orbital" role="img" aria-label="A 3d orbital with four lobes, drawn from the hydrogen wavefunction. Teal and amber mark opposite signs of the wavefunction."></canvas>
+        <div class="hero-orbital-label"><span class="orbital-notation">3d<sub>xy</sub></span><span>A standing wave.<br>A whole new picture of matter.</span></div>
+        <figcaption><span><i class="phase-dot teal"></i> + phase <i class="phase-dot amber"></i> − phase</span><span>HYDROGEN · n = 3</span></figcaption>
+      </figure>
+      <div class="hero-foot"><span>THREE CHAPTERS. ONE CONNECTED IDEA.</span><span>History <b>→</b> Wave mechanics <b>→</b> Atomic orbitals</span><a href="#history" aria-label="Scroll to chapter one">↓</a></div>
+    </section>
+    <section id="history" class="history section-wrap" aria-labelledby="history-title">
+      <div class="section-heading"><p class="eyebrow">01 / THE HISTORY</p><h2 id="history-title">A better question.<br>Then a <em>better model.</em></h2><p>Each discovery kept what worked—and exposed what the previous picture could not explain. Follow the ideas that made wave mechanics possible.</p></div>
+      <div class="history-layout">
+        <div class="timeline" id="timeline" role="tablist" aria-label="Historical discoveries" aria-orientation="vertical"></div>
+        <article class="history-panel" id="history-panel" role="tabpanel" tabindex="0" aria-live="polite"></article>
+      </div>
+      <div class="chapter-bridge"><span class="bridge-symbol">λ = h/p</span><p>If matter has a wavelength, an electron needs a wave equation.<br><strong>So what should that equation look like?</strong></p><a href="#equation" class="round-arrow" aria-label="Continue to the equation">↓</a></div>
+    </section>
+    <section id="equation" class="equation-section" aria-labelledby="equation-title">
+      <div class="section-wrap">
+        <div class="section-heading"><p class="eyebrow">02 / THE EQUATION</p><h2 id="equation-title">Give the wave<br>a <em>language.</em></h2><p>A guided reconstruction of the ideas in Part II. Start with a wave, connect it to energy, and arrive at Schrödinger’s equation.</p></div>
+        <div class="equation-layout"><div id="equation-steps" class="equation-steps" role="tablist" aria-label="Building the equation" aria-orientation="vertical"></div><article id="equation-panel" class="equation-panel" role="tabpanel" tabindex="0" aria-live="polite"></article></div>
+        <div class="equation-bottom"><span>THE CONNECTION TO THE ATOM</span><p>Put an electron in the nucleus’s electric field. The allowed standing-wave solutions become <em>atomic orbitals.</em></p><a href="#atom" class="button cream">Meet the solutions <span>↗</span></a></div>
+      </div>
+    </section>
+    <section id="atom" class="atom-section section-wrap" aria-labelledby="atom-title">
+      <div class="section-heading"><p class="eyebrow">03 / THE ATOM</p><h2 id="atom-title">An orbital is<br>a <em>solution.</em></h2><p>These shapes come from the hydrogen-like Schrödinger equation. Change the quantum numbers and explore the patterns an electron can occupy.</p></div>
+      <div class="lab-heading"><span><i class="dot"></i> THE ORBITAL LAB</span><span>ONE ELECTRON · THREE DIMENSIONS</span></div>
+      <div class="lab">
+        <aside class="lab-controls" aria-label="Orbital controls">
+          <div class="control-block"><label for="species">01 <span>Choose your atom</span></label><select id="species"><option value="1">H · Hydrogen</option><option value="2">He⁺ · Helium ion</option><option value="3">Li²⁺ · Lithium ion</option></select><p>One electron, with nuclear charge Z = <span id="charge">1</span>.</p></div>
+          <div class="control-block"><label for="principal">02 <span>Shell <em>n</em></span><output id="principal-value" for="principal">2</output></label><input id="principal" type="range" min="1" max="4" step="1" value="2"><div class="range-labels" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span></div><p>Higher shells generally reach farther from the nucleus.</p></div>
+          <div class="control-block"><span class="control-label">03 <span>Subshell <em>ℓ</em></span></span><div id="subshells" class="segmented" role="group" aria-label="Subshell"></div><p id="subshell-help"></p></div>
+          <div class="control-block"><label for="orientation">04 <span>Orientation</span></label><select id="orientation"></select><p id="orientation-help">Real orbital basis; pₓ and pᵧ combine m = ±1.</p></div>
+          <div class="control-block lab-presets"><span class="control-label">TRY A COMPARISON</span><div><button type="button" data-preset="1,0,0">1s</button><button type="button" data-preset="2,0,0">2s</button><button type="button" data-preset="2,1,0">2p</button><button type="button" data-preset="3,2,-2">3d</button><button type="button" data-preset="4,3,0">4f</button></div></div>
+        </aside>
+        <div class="lab-main">
+          <div class="orbital-viewport" id="orbital-viewport" tabindex="0" role="img" aria-label="Interactive orbital view. Drag to rotate, scroll to zoom, or use arrow keys and plus or minus when focused.">
+            <div class="viewport-heading"><span id="viewport-name">2p<sub>z</sub></span><span id="viewport-state">n = 2 · ℓ = 1</span></div>
+            <div id="stage"></div>
+            <div class="viewport-footer"><span><i class="phase-dot teal"></i> + sign <i class="phase-dot amber"></i> − sign</span><span>DRAG TO ROTATE · SCROLL TO ZOOM</span></div>
+            <div id="webgl-fallback" class="webgl-fallback" hidden><h3>The 3D view needs WebGL2.</h3><p>The guide and orbital data still work. Enable graphics acceleration in your browser to explore the cloud.</p></div>
+          </div>
+          <div class="view-tools"><label><input id="rotate" type="checkbox" checked> Auto-rotate</label><label><input id="cutaway" type="checkbox"> Half cutaway</label><button id="reset-view" type="button">Reset view ↺</button><span id="sample-count">32,000 samples</span></div>
+          <div class="orbital-metrics" aria-live="polite"><div><span>ENERGY</span><strong id="energy">−3.40 <small>eV</small></strong></div><div><span>RADIAL NODES</span><strong id="radial-nodes">0</strong></div><div><span>ANGULAR NODES</span><strong id="angular-nodes">1</strong></div><div><span>95% RADIUS</span><strong id="view-radius">— <small>a₀</small></strong></div></div>
+        </div>
+      </div>
+      <div class="lab-explanation"><div><p class="eyebrow">WHAT YOU’RE LOOKING AT</p><h3 id="orbital-title">The 2p orbital</h3><p id="orbital-explanation" aria-live="polite"></p></div><div><p><strong>The dots are possible detections.</strong> They sample |ψ|² for one electron; they are not thousands of electrons or a path around the nucleus. The two colours mark the sign of the real wavefunction, not electric charge.</p><p><strong>A stationary pattern.</strong> Camera rotation is just a viewing aid. An energy eigenstate changes by a global phase in time, so its cloud stays the same.</p></div></div>
+      <div class="exploration"><p class="eyebrow">A SMALL EXPERIMENT</p><div class="experiment-buttons"><button type="button" data-challenge="nodes"><span>01</span> Find the missing shell <b>↗</b></button><button type="button" data-challenge="shape"><span>02</span> Same shell, new shape <b>↗</b></button><button type="button" data-challenge="charge"><span>03</span> Pull the wave inward <b>↗</b></button></div><p id="challenge-text" class="challenge-text" aria-live="polite">Choose an experiment for a guided observation in the lab.</p></div>
+      <details class="model-note"><summary>How this simulation works <span>+</span></summary><div><p>We evaluate analytic, nonrelativistic Coulomb orbitals: ψ(r, θ, φ) = Rₙℓ(r) Yℓ(θ, φ). The radial factor uses associated Laguerre polynomials; the angular factor uses real spherical harmonics. The cloud is sampled from |ψ|² with a seeded Monte Carlo sampler.</p><p>The model is for a single electron and a fixed, pointlike nucleus. H, He⁺, and Li²⁺ are hydrogen-like systems. We omit electron interactions, spin, relativity, fine structure, and external fields. Energies use Eₙ ≈ −13.606 Z²/n² eV and distances use a₀ ≈ 52.918 pm. Shell and subshell changes reframe the view. Changing nuclear charge keeps the same frame, so contraction is visible. The 95% radius encloses 95% of the electron’s position probability. A cutaway hides x &gt; 0 to reveal internal nodes.</p><p>The labels pₓ, pᵧ, dₓᵧ and related real orbitals are real linear combinations of the complex m eigenstates. The orientation selector therefore uses real basis labels, rather than claiming each shape has one definite magnetic quantum number. Colours indicate opposite real signs; a global sign reversal describes the same state.</p></div></details>
+    </section>
+    <section class="sources-section section-wrap" id="reading" aria-labelledby="reading-title"><div><p class="eyebrow">THE READING BEHIND THE JOURNEY</p><h2 id="reading-title">Keep <em>following<br>the question.</em></h2><p>This guide grows out of my two articles on Schrödinger’s equation, then takes the next step into the atom.</p></div><div class="source-links"><a href="https://medium.com/@jeyubhavsar/schr%C3%B6dingers-equation-for-dummies-part-i-historical-overview-92250056f33b" target="_blank" rel="noopener"><span>PART I · JAHAAN BHAVSAR</span><strong>The historical overview</strong><span>Read on Medium ↗</span></a><a href="https://medium.com/@jeyubhavsar/schr%C3%B6dingers-equation-for-dummies-part-ii-decoding-the-equation-0e9dad3f9f3b" target="_blank" rel="noopener"><span>PART II · JAHAAN BHAVSAR</span><strong>Decoding the equation</strong><span>Read on Medium ↗</span></a><details><summary>Physics references & further reading</summary><ul><li><a href="https://www.nobelprize.org/prizes/themes/the-nobel-prize-in-physics-1901-2000/" target="_blank" rel="noopener">Nobel Prize · From classical to quantum physics ↗</a></li><li><a href="https://ocw.mit.edu/courses/8-04-quantum-physics-i-spring-2016/e34ceed6a6ec944a3c761fcbbf48be5f_MIT8_04S16_LecNotes22.pdf" target="_blank" rel="noopener">MIT OpenCourseWare · Hydrogen atom lecture notes ↗</a></li><li><a href="https://www.quantum-physics.polytechnique.fr/hydrogenOrbitals.php" target="_blank" rel="noopener">École Polytechnique · Hydrogen orbitals ↗</a></li></ul></details></div></section>
+  </main>
+  <footer class="section-wrap"><a href="#top" class="wordmark"><span class="brand-symbol">ψ</span> QuantumSim</a><span>A QUESTION. AN EQUATION. AN ATOM.</span><a href="https://github.com/jahaanb7/QuantumSim" target="_blank" rel="noopener">View the source ↗</a><a href="#top">Back to top ↑</a></footer>
+  <noscript><p>This guide’s interactive lessons and simulation need JavaScript. The two original articles are linked above.</p></noscript>
   <script type="module" src="src/app.js"></script>
 </body>
 </html>

@@ -13,7 +13,6 @@
 
 const TAU = Math.PI * 2;
 const radialCache = new Map();
-const angularCache = new Map();
 
 const FACT = [1];
 for (let i = 1; i <= 20; i++) FACT[i] = FACT[i - 1] * i;
@@ -114,31 +113,23 @@ export function angularShape(l, m, cosTheta, sinTheta, cosPhi, sinPhi) {
   return 0;
 }
 
-function buildAngularMax(l, m) {
-  const key = `${l}-${m}`;
-  const cached = angularCache.get(key);
-  if (cached) return cached;
+// Conservative analytic bounds avoid underestimating lobes between grid points.
+function angularBound(l, m) {
+  if (l === 2 && m === 0) return 2;
+  if (l === 3 && Math.abs(m) <= 1) return 2;
+  return 1;
+}
 
-  let max = 0;
-  const steps = 96;
-  for (let i = 0; i <= steps; i++) {
-    const theta = (i / steps) * Math.PI;
-    const ct = Math.cos(theta);
-    const st = Math.sin(theta);
-    for (let j = 0; j < steps * 2; j++) {
-      const phi = (j / (steps * 2)) * TAU;
-      const value = Math.abs(
-        angularShape(l, m, ct, st, Math.cos(phi), Math.sin(phi))
-      );
-      if (value > max) max = value;
-    }
+export function validateOrbital(n, l, z, m = 0) {
+  if (!Number.isInteger(n) || n < 1 || n > 8 || !Number.isInteger(l) ||
+      l < 0 || l > Math.min(3, n - 1) || !Number.isInteger(m) || Math.abs(m) > l ||
+      !Number.isFinite(z) || z <= 0) {
+    throw new RangeError('Use n = 1…8, ℓ = 0…min(3,n−1), |m| ≤ ℓ, and Z > 0.');
   }
-  max = max || 1;
-  angularCache.set(key, max);
-  return max;
 }
 
 function buildRadial(n, l, z) {
+  validateOrbital(n, l, z);
   const key = `${n}-${l}-${z.toFixed(4)}`;
   const cached = radialCache.get(key);
   if (cached) return cached;
@@ -230,8 +221,12 @@ function sampleRadius(cdf, random) {
  *   mean: number, mostProbable: number, extent95: number}}
  */
 export function sampleCloud({ n, l, m = 0, zEff = 1, count = 40000, seed = 1 }) {
+  validateOrbital(n, l, zEff, m);
+  if (!Number.isInteger(count) || count < 1 || count > 1000000) {
+    throw new RangeError('Sample count must be an integer from 1 to 1,000,000.');
+  }
   const radial = buildRadial(n, l, zEff);
-  const angularMax = buildAngularMax(l, m);
+  const angularMax = angularBound(l, m);
   const positions = new Float32Array(count * 3);
   const signs = new Int8Array(count);
   const random = mulberry32(seed);
@@ -254,7 +249,7 @@ export function sampleCloud({ n, l, m = 0, zEff = 1, count = 40000, seed = 1 }) 
       sp = Math.sin(phi);
     } else {
       const maxSq = angularMax * angularMax;
-      for (let attempt = 0; attempt < 48; attempt++) {
+      while (true) {
         const u = 2 * random() - 1;
         const phi = TAU * random();
         const sint = Math.sqrt(Math.max(0, 1 - u * u));
@@ -268,13 +263,6 @@ export function sampleCloud({ n, l, m = 0, zEff = 1, count = 40000, seed = 1 }) 
           sp = sinPhi;
           angular = value;
           break;
-        }
-        if (attempt === 47) {
-          ct = u;
-          st = sint;
-          cp = cosPhi;
-          sp = sinPhi;
-          angular = value;
         }
       }
     }
@@ -321,9 +309,9 @@ export function radialZeros(n, l, zEff, steps = 900) {
   for (let i = 1; i <= steps; i++) {
     const r = (i / steps) * radius;
     const value = radialFunction(n, l, zEff, r);
-    if (previous === 0) {
+    if (previous === 0 && i > 1) {
       zeros.push(((i - 1) / steps) * radius);
-    } else if (value === 0 || Math.sign(previous) !== Math.sign(value)) {
+    } else if (previous !== 0 && (value === 0 || Math.sign(previous) !== Math.sign(value))) {
       const r0 = ((i - 1) / steps) * radius;
       const span = r - r0;
       zeros.push(r0 + (span * Math.abs(previous)) / (Math.abs(previous) + Math.abs(value)));
